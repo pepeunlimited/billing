@@ -1,0 +1,3 @@
+package paymentinstrumentrpc
+
+const RpcPaymentInstrumentHost = "RPC_PAYMENT_INSTRUMENT_HOST"

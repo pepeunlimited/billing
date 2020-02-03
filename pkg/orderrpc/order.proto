@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package pepeunlimited.billing;
+option go_package = "orderrpc";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+// https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto
+
+service OrderService {
+
+    rpc CreateOrder(CreateOrderParams) returns (Order);
+
+    rpc GetOrders(GetOrdersParams)      returns (GetPlansResponse);
+
+    rpc GetOrder(GetOrderParams)       returns (Order);
+}
+
+message CreateOrderParams {}
+
+message Order {
+    int64 id             = 1;
+}
+
+message GetOrderParams {
+    int64 order_id       = 1;
+    int64 user_id        = 2;
+}
+
+message GetOrdersParams {
+    int64 user_id        = 1;
+}
+
+message GetPlansResponse {
+    repeated Order orders = 1;
+}

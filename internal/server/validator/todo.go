@@ -1,8 +1,6 @@
 package validator
 
-import (
-	"github.com/pepeunlimited/rpc-starter-kit/pkg/todorpc"
-)
+import "github.com/pepeunlimited/billing/pkg/subscriptionrpc"
 
 type TodoServerValidator struct {}
 
@@ -11,18 +9,18 @@ func NewTodoServerValidator() TodoServerValidator {
 	return TodoServerValidator{}
 }
 
-func (TodoServerValidator) CreateTodo(params *todorpc.CreateTodoParams) error {
+func (TodoServerValidator) CreateTodo(params *subscriptionrpc.CreateTodoParams) error {
 	return nil
 }
 
-func (TodoServerValidator) GetTodo(params *todorpc.GetTodoParams) error {
+func (TodoServerValidator) GetTodo(params *subscriptionrpc.GetTodoParams) error {
 	return nil
 }
 
-func (TodoServerValidator) UpdateTodo(params *todorpc.UpdateTodoParams) error {
+func (TodoServerValidator) UpdateTodo(params *subscriptionrpc.UpdateTodoParams) error {
 	return nil
 }
 
-func (TodoServerValidator) DeleteTodo(params *todorpc.DeleteTodoParams) error {
+func (TodoServerValidator) DeleteTodo(params *subscriptionrpc.DeleteTodoParams) error {
 	return nil
 }

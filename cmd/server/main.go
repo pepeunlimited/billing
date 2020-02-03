@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/pepeunlimited/microservice-kit/headers"
 	"github.com/pepeunlimited/microservice-kit/middleware"
-	"github.com/pepeunlimited/rpc-starter-kit/internal/server/twirp"
 	"github.com/pepeunlimited/rpc-starter-kit/pkg/todorpc"
 	"log"
 	"net/http"
