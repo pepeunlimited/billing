@@ -9,12 +9,8 @@ import (
 
 	"github.com/pepeunlimited/billing/internal/pkg/ent/migrate"
 
-	"github.com/pepeunlimited/billing/internal/pkg/ent/orderitems"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/ordertxs"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/paymentinstruments"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/plans"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/subscriptions"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/plan"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/subscription"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -26,18 +22,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// OrderItems is the client for interacting with the OrderItems builders.
-	OrderItems *OrderItemsClient
-	// OrderTXs is the client for interacting with the OrderTXs builders.
-	OrderTXs *OrderTXsClient
-	// Orders is the client for interacting with the Orders builders.
-	Orders *OrdersClient
-	// PaymentInstruments is the client for interacting with the PaymentInstruments builders.
-	PaymentInstruments *PaymentInstrumentsClient
-	// Plans is the client for interacting with the Plans builders.
-	Plans *PlansClient
-	// Subscriptions is the client for interacting with the Subscriptions builders.
-	Subscriptions *SubscriptionsClient
+	// Plan is the client for interacting with the Plan builders.
+	Plan *PlanClient
+	// Subscription is the client for interacting with the Subscription builders.
+	Subscription *SubscriptionClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -45,14 +33,10 @@ func NewClient(opts ...Option) *Client {
 	c := config{log: log.Println}
 	c.options(opts...)
 	return &Client{
-		config:             c,
-		Schema:             migrate.NewSchema(c.driver),
-		OrderItems:         NewOrderItemsClient(c),
-		OrderTXs:           NewOrderTXsClient(c),
-		Orders:             NewOrdersClient(c),
-		PaymentInstruments: NewPaymentInstrumentsClient(c),
-		Plans:              NewPlansClient(c),
-		Subscriptions:      NewSubscriptionsClient(c),
+		config:       c,
+		Schema:       migrate.NewSchema(c.driver),
+		Plan:         NewPlanClient(c),
+		Subscription: NewSubscriptionClient(c),
 	}
 }
 
@@ -83,20 +67,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
-		config:             cfg,
-		OrderItems:         NewOrderItemsClient(cfg),
-		OrderTXs:           NewOrderTXsClient(cfg),
-		Orders:             NewOrdersClient(cfg),
-		PaymentInstruments: NewPaymentInstrumentsClient(cfg),
-		Plans:              NewPlansClient(cfg),
-		Subscriptions:      NewSubscriptionsClient(cfg),
+		config:       cfg,
+		Plan:         NewPlanClient(cfg),
+		Subscription: NewSubscriptionClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		OrderItems.
+//		Plan.
 //		Query().
 //		Count(ctx)
 //
@@ -106,14 +86,10 @@ func (c *Client) Debug() *Client {
 	}
 	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true}
 	return &Client{
-		config:             cfg,
-		Schema:             migrate.NewSchema(cfg.driver),
-		OrderItems:         NewOrderItemsClient(cfg),
-		OrderTXs:           NewOrderTXsClient(cfg),
-		Orders:             NewOrdersClient(cfg),
-		PaymentInstruments: NewPaymentInstrumentsClient(cfg),
-		Plans:              NewPlansClient(cfg),
-		Subscriptions:      NewSubscriptionsClient(cfg),
+		config:       cfg,
+		Schema:       migrate.NewSchema(cfg.driver),
+		Plan:         NewPlanClient(cfg),
+		Subscription: NewSubscriptionClient(cfg),
 	}
 }
 
@@ -122,403 +98,63 @@ func (c *Client) Close() error {
 	return c.driver.Close()
 }
 
-// OrderItemsClient is a client for the OrderItems schema.
-type OrderItemsClient struct {
+// PlanClient is a client for the Plan schema.
+type PlanClient struct {
 	config
 }
 
-// NewOrderItemsClient returns a client for the OrderItems from the given config.
-func NewOrderItemsClient(c config) *OrderItemsClient {
-	return &OrderItemsClient{config: c}
+// NewPlanClient returns a client for the Plan from the given config.
+func NewPlanClient(c config) *PlanClient {
+	return &PlanClient{config: c}
 }
 
-// Create returns a create builder for OrderItems.
-func (c *OrderItemsClient) Create() *OrderItemsCreate {
-	return &OrderItemsCreate{config: c.config}
+// Create returns a create builder for Plan.
+func (c *PlanClient) Create() *PlanCreate {
+	return &PlanCreate{config: c.config}
 }
 
-// Update returns an update builder for OrderItems.
-func (c *OrderItemsClient) Update() *OrderItemsUpdate {
-	return &OrderItemsUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *OrderItemsClient) UpdateOne(oi *OrderItems) *OrderItemsUpdateOne {
-	return c.UpdateOneID(oi.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *OrderItemsClient) UpdateOneID(id int) *OrderItemsUpdateOne {
-	return &OrderItemsUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for OrderItems.
-func (c *OrderItemsClient) Delete() *OrderItemsDelete {
-	return &OrderItemsDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *OrderItemsClient) DeleteOne(oi *OrderItems) *OrderItemsDeleteOne {
-	return c.DeleteOneID(oi.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *OrderItemsClient) DeleteOneID(id int) *OrderItemsDeleteOne {
-	return &OrderItemsDeleteOne{c.Delete().Where(orderitems.ID(id))}
-}
-
-// Create returns a query builder for OrderItems.
-func (c *OrderItemsClient) Query() *OrderItemsQuery {
-	return &OrderItemsQuery{config: c.config}
-}
-
-// Get returns a OrderItems entity by its id.
-func (c *OrderItemsClient) Get(ctx context.Context, id int) (*OrderItems, error) {
-	return c.Query().Where(orderitems.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *OrderItemsClient) GetX(ctx context.Context, id int) *OrderItems {
-	oi, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return oi
-}
-
-// QueryOrders queries the orders edge of a OrderItems.
-func (c *OrderItemsClient) QueryOrders(oi *OrderItems) *OrdersQuery {
-	query := &OrdersQuery{config: c.config}
-	id := oi.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(orderitems.Table, orderitems.FieldID, id),
-		sqlgraph.To(orders.Table, orders.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, orderitems.OrdersTable, orderitems.OrdersColumn),
-	)
-	query.sql = sqlgraph.Neighbors(oi.driver.Dialect(), step)
-
-	return query
-}
-
-// OrderTXsClient is a client for the OrderTXs schema.
-type OrderTXsClient struct {
-	config
-}
-
-// NewOrderTXsClient returns a client for the OrderTXs from the given config.
-func NewOrderTXsClient(c config) *OrderTXsClient {
-	return &OrderTXsClient{config: c}
-}
-
-// Create returns a create builder for OrderTXs.
-func (c *OrderTXsClient) Create() *OrderTXsCreate {
-	return &OrderTXsCreate{config: c.config}
-}
-
-// Update returns an update builder for OrderTXs.
-func (c *OrderTXsClient) Update() *OrderTXsUpdate {
-	return &OrderTXsUpdate{config: c.config}
+// Update returns an update builder for Plan.
+func (c *PlanClient) Update() *PlanUpdate {
+	return &PlanUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *OrderTXsClient) UpdateOne(ordertxs *OrderTXs) *OrderTXsUpdateOne {
-	return c.UpdateOneID(ordertxs.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *OrderTXsClient) UpdateOneID(id int) *OrderTXsUpdateOne {
-	return &OrderTXsUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for OrderTXs.
-func (c *OrderTXsClient) Delete() *OrderTXsDelete {
-	return &OrderTXsDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *OrderTXsClient) DeleteOne(ordertxs *OrderTXs) *OrderTXsDeleteOne {
-	return c.DeleteOneID(ordertxs.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *OrderTXsClient) DeleteOneID(id int) *OrderTXsDeleteOne {
-	return &OrderTXsDeleteOne{c.Delete().Where(ordertxs.ID(id))}
-}
-
-// Create returns a query builder for OrderTXs.
-func (c *OrderTXsClient) Query() *OrderTXsQuery {
-	return &OrderTXsQuery{config: c.config}
-}
-
-// Get returns a OrderTXs entity by its id.
-func (c *OrderTXsClient) Get(ctx context.Context, id int) (*OrderTXs, error) {
-	return c.Query().Where(ordertxs.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *OrderTXsClient) GetX(ctx context.Context, id int) *OrderTXs {
-	ordertxs, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return ordertxs
-}
-
-// QueryOrders queries the orders edge of a OrderTXs.
-func (c *OrderTXsClient) QueryOrders(ordertxs *OrderTXs) *OrdersQuery {
-	query := &OrdersQuery{config: c.config}
-	id := ordertxs.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(ordertxs.Table, ordertxs.FieldID, id),
-		sqlgraph.To(orders.Table, orders.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ordertxs.OrdersTable, ordertxs.OrdersColumn),
-	)
-	query.sql = sqlgraph.Neighbors(ordertxs.driver.Dialect(), step)
-
-	return query
-}
-
-// OrdersClient is a client for the Orders schema.
-type OrdersClient struct {
-	config
-}
-
-// NewOrdersClient returns a client for the Orders from the given config.
-func NewOrdersClient(c config) *OrdersClient {
-	return &OrdersClient{config: c}
-}
-
-// Create returns a create builder for Orders.
-func (c *OrdersClient) Create() *OrdersCreate {
-	return &OrdersCreate{config: c.config}
-}
-
-// Update returns an update builder for Orders.
-func (c *OrdersClient) Update() *OrdersUpdate {
-	return &OrdersUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *OrdersClient) UpdateOne(o *Orders) *OrdersUpdateOne {
-	return c.UpdateOneID(o.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *OrdersClient) UpdateOneID(id int) *OrdersUpdateOne {
-	return &OrdersUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for Orders.
-func (c *OrdersClient) Delete() *OrdersDelete {
-	return &OrdersDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *OrdersClient) DeleteOne(o *Orders) *OrdersDeleteOne {
-	return c.DeleteOneID(o.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *OrdersClient) DeleteOneID(id int) *OrdersDeleteOne {
-	return &OrdersDeleteOne{c.Delete().Where(orders.ID(id))}
-}
-
-// Create returns a query builder for Orders.
-func (c *OrdersClient) Query() *OrdersQuery {
-	return &OrdersQuery{config: c.config}
-}
-
-// Get returns a Orders entity by its id.
-func (c *OrdersClient) Get(ctx context.Context, id int) (*Orders, error) {
-	return c.Query().Where(orders.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *OrdersClient) GetX(ctx context.Context, id int) *Orders {
-	o, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return o
-}
-
-// QueryOrderTxs queries the order_txs edge of a Orders.
-func (c *OrdersClient) QueryOrderTxs(o *Orders) *OrderTXsQuery {
-	query := &OrderTXsQuery{config: c.config}
-	id := o.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(orders.Table, orders.FieldID, id),
-		sqlgraph.To(ordertxs.Table, ordertxs.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, orders.OrderTxsTable, orders.OrderTxsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryOrderItems queries the order_items edge of a Orders.
-func (c *OrdersClient) QueryOrderItems(o *Orders) *OrderItemsQuery {
-	query := &OrderItemsQuery{config: c.config}
-	id := o.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(orders.Table, orders.FieldID, id),
-		sqlgraph.To(orderitems.Table, orderitems.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, orders.OrderItemsTable, orders.OrderItemsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryPaymentInstruments queries the payment_instruments edge of a Orders.
-func (c *OrdersClient) QueryPaymentInstruments(o *Orders) *PaymentInstrumentsQuery {
-	query := &PaymentInstrumentsQuery{config: c.config}
-	id := o.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(orders.Table, orders.FieldID, id),
-		sqlgraph.To(paymentinstruments.Table, paymentinstruments.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, orders.PaymentInstrumentsTable, orders.PaymentInstrumentsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
-
-	return query
-}
-
-// PaymentInstrumentsClient is a client for the PaymentInstruments schema.
-type PaymentInstrumentsClient struct {
-	config
-}
-
-// NewPaymentInstrumentsClient returns a client for the PaymentInstruments from the given config.
-func NewPaymentInstrumentsClient(c config) *PaymentInstrumentsClient {
-	return &PaymentInstrumentsClient{config: c}
-}
-
-// Create returns a create builder for PaymentInstruments.
-func (c *PaymentInstrumentsClient) Create() *PaymentInstrumentsCreate {
-	return &PaymentInstrumentsCreate{config: c.config}
-}
-
-// Update returns an update builder for PaymentInstruments.
-func (c *PaymentInstrumentsClient) Update() *PaymentInstrumentsUpdate {
-	return &PaymentInstrumentsUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PaymentInstrumentsClient) UpdateOne(pi *PaymentInstruments) *PaymentInstrumentsUpdateOne {
-	return c.UpdateOneID(pi.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PaymentInstrumentsClient) UpdateOneID(id int) *PaymentInstrumentsUpdateOne {
-	return &PaymentInstrumentsUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for PaymentInstruments.
-func (c *PaymentInstrumentsClient) Delete() *PaymentInstrumentsDelete {
-	return &PaymentInstrumentsDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *PaymentInstrumentsClient) DeleteOne(pi *PaymentInstruments) *PaymentInstrumentsDeleteOne {
-	return c.DeleteOneID(pi.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *PaymentInstrumentsClient) DeleteOneID(id int) *PaymentInstrumentsDeleteOne {
-	return &PaymentInstrumentsDeleteOne{c.Delete().Where(paymentinstruments.ID(id))}
-}
-
-// Create returns a query builder for PaymentInstruments.
-func (c *PaymentInstrumentsClient) Query() *PaymentInstrumentsQuery {
-	return &PaymentInstrumentsQuery{config: c.config}
-}
-
-// Get returns a PaymentInstruments entity by its id.
-func (c *PaymentInstrumentsClient) Get(ctx context.Context, id int) (*PaymentInstruments, error) {
-	return c.Query().Where(paymentinstruments.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PaymentInstrumentsClient) GetX(ctx context.Context, id int) *PaymentInstruments {
-	pi, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return pi
-}
-
-// QueryOrders queries the orders edge of a PaymentInstruments.
-func (c *PaymentInstrumentsClient) QueryOrders(pi *PaymentInstruments) *OrdersQuery {
-	query := &OrdersQuery{config: c.config}
-	id := pi.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(paymentinstruments.Table, paymentinstruments.FieldID, id),
-		sqlgraph.To(orders.Table, orders.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, paymentinstruments.OrdersTable, paymentinstruments.OrdersColumn),
-	)
-	query.sql = sqlgraph.Neighbors(pi.driver.Dialect(), step)
-
-	return query
-}
-
-// PlansClient is a client for the Plans schema.
-type PlansClient struct {
-	config
-}
-
-// NewPlansClient returns a client for the Plans from the given config.
-func NewPlansClient(c config) *PlansClient {
-	return &PlansClient{config: c}
-}
-
-// Create returns a create builder for Plans.
-func (c *PlansClient) Create() *PlansCreate {
-	return &PlansCreate{config: c.config}
-}
-
-// Update returns an update builder for Plans.
-func (c *PlansClient) Update() *PlansUpdate {
-	return &PlansUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PlansClient) UpdateOne(pl *Plans) *PlansUpdateOne {
+func (c *PlanClient) UpdateOne(pl *Plan) *PlanUpdateOne {
 	return c.UpdateOneID(pl.ID)
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *PlansClient) UpdateOneID(id int) *PlansUpdateOne {
-	return &PlansUpdateOne{config: c.config, id: id}
+func (c *PlanClient) UpdateOneID(id int) *PlanUpdateOne {
+	return &PlanUpdateOne{config: c.config, id: id}
 }
 
-// Delete returns a delete builder for Plans.
-func (c *PlansClient) Delete() *PlansDelete {
-	return &PlansDelete{config: c.config}
+// Delete returns a delete builder for Plan.
+func (c *PlanClient) Delete() *PlanDelete {
+	return &PlanDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *PlansClient) DeleteOne(pl *Plans) *PlansDeleteOne {
+func (c *PlanClient) DeleteOne(pl *Plan) *PlanDeleteOne {
 	return c.DeleteOneID(pl.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *PlansClient) DeleteOneID(id int) *PlansDeleteOne {
-	return &PlansDeleteOne{c.Delete().Where(plans.ID(id))}
+func (c *PlanClient) DeleteOneID(id int) *PlanDeleteOne {
+	return &PlanDeleteOne{c.Delete().Where(plan.ID(id))}
 }
 
-// Create returns a query builder for Plans.
-func (c *PlansClient) Query() *PlansQuery {
-	return &PlansQuery{config: c.config}
+// Create returns a query builder for Plan.
+func (c *PlanClient) Query() *PlanQuery {
+	return &PlanQuery{config: c.config}
 }
 
-// Get returns a Plans entity by its id.
-func (c *PlansClient) Get(ctx context.Context, id int) (*Plans, error) {
-	return c.Query().Where(plans.ID(id)).Only(ctx)
+// Get returns a Plan entity by its id.
+func (c *PlanClient) Get(ctx context.Context, id int) (*Plan, error) {
+	return c.Query().Where(plan.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *PlansClient) GetX(ctx context.Context, id int) *Plans {
+func (c *PlanClient) GetX(ctx context.Context, id int) *Plan {
 	pl, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -526,77 +162,77 @@ func (c *PlansClient) GetX(ctx context.Context, id int) *Plans {
 	return pl
 }
 
-// QuerySubscriptions queries the subscriptions edge of a Plans.
-func (c *PlansClient) QuerySubscriptions(pl *Plans) *SubscriptionsQuery {
-	query := &SubscriptionsQuery{config: c.config}
+// QuerySubscriptions queries the subscriptions edge of a Plan.
+func (c *PlanClient) QuerySubscriptions(pl *Plan) *SubscriptionQuery {
+	query := &SubscriptionQuery{config: c.config}
 	id := pl.ID
 	step := sqlgraph.NewStep(
-		sqlgraph.From(plans.Table, plans.FieldID, id),
-		sqlgraph.To(subscriptions.Table, subscriptions.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, plans.SubscriptionsTable, plans.SubscriptionsColumn),
+		sqlgraph.From(plan.Table, plan.FieldID, id),
+		sqlgraph.To(subscription.Table, subscription.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, plan.SubscriptionsTable, plan.SubscriptionsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(pl.driver.Dialect(), step)
 
 	return query
 }
 
-// SubscriptionsClient is a client for the Subscriptions schema.
-type SubscriptionsClient struct {
+// SubscriptionClient is a client for the Subscription schema.
+type SubscriptionClient struct {
 	config
 }
 
-// NewSubscriptionsClient returns a client for the Subscriptions from the given config.
-func NewSubscriptionsClient(c config) *SubscriptionsClient {
-	return &SubscriptionsClient{config: c}
+// NewSubscriptionClient returns a client for the Subscription from the given config.
+func NewSubscriptionClient(c config) *SubscriptionClient {
+	return &SubscriptionClient{config: c}
 }
 
-// Create returns a create builder for Subscriptions.
-func (c *SubscriptionsClient) Create() *SubscriptionsCreate {
-	return &SubscriptionsCreate{config: c.config}
+// Create returns a create builder for Subscription.
+func (c *SubscriptionClient) Create() *SubscriptionCreate {
+	return &SubscriptionCreate{config: c.config}
 }
 
-// Update returns an update builder for Subscriptions.
-func (c *SubscriptionsClient) Update() *SubscriptionsUpdate {
-	return &SubscriptionsUpdate{config: c.config}
+// Update returns an update builder for Subscription.
+func (c *SubscriptionClient) Update() *SubscriptionUpdate {
+	return &SubscriptionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *SubscriptionsClient) UpdateOne(s *Subscriptions) *SubscriptionsUpdateOne {
+func (c *SubscriptionClient) UpdateOne(s *Subscription) *SubscriptionUpdateOne {
 	return c.UpdateOneID(s.ID)
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SubscriptionsClient) UpdateOneID(id int) *SubscriptionsUpdateOne {
-	return &SubscriptionsUpdateOne{config: c.config, id: id}
+func (c *SubscriptionClient) UpdateOneID(id int) *SubscriptionUpdateOne {
+	return &SubscriptionUpdateOne{config: c.config, id: id}
 }
 
-// Delete returns a delete builder for Subscriptions.
-func (c *SubscriptionsClient) Delete() *SubscriptionsDelete {
-	return &SubscriptionsDelete{config: c.config}
+// Delete returns a delete builder for Subscription.
+func (c *SubscriptionClient) Delete() *SubscriptionDelete {
+	return &SubscriptionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *SubscriptionsClient) DeleteOne(s *Subscriptions) *SubscriptionsDeleteOne {
+func (c *SubscriptionClient) DeleteOne(s *Subscription) *SubscriptionDeleteOne {
 	return c.DeleteOneID(s.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *SubscriptionsClient) DeleteOneID(id int) *SubscriptionsDeleteOne {
-	return &SubscriptionsDeleteOne{c.Delete().Where(subscriptions.ID(id))}
+func (c *SubscriptionClient) DeleteOneID(id int) *SubscriptionDeleteOne {
+	return &SubscriptionDeleteOne{c.Delete().Where(subscription.ID(id))}
 }
 
-// Create returns a query builder for Subscriptions.
-func (c *SubscriptionsClient) Query() *SubscriptionsQuery {
-	return &SubscriptionsQuery{config: c.config}
+// Create returns a query builder for Subscription.
+func (c *SubscriptionClient) Query() *SubscriptionQuery {
+	return &SubscriptionQuery{config: c.config}
 }
 
-// Get returns a Subscriptions entity by its id.
-func (c *SubscriptionsClient) Get(ctx context.Context, id int) (*Subscriptions, error) {
-	return c.Query().Where(subscriptions.ID(id)).Only(ctx)
+// Get returns a Subscription entity by its id.
+func (c *SubscriptionClient) Get(ctx context.Context, id int) (*Subscription, error) {
+	return c.Query().Where(subscription.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SubscriptionsClient) GetX(ctx context.Context, id int) *Subscriptions {
+func (c *SubscriptionClient) GetX(ctx context.Context, id int) *Subscription {
 	s, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -604,14 +240,14 @@ func (c *SubscriptionsClient) GetX(ctx context.Context, id int) *Subscriptions {
 	return s
 }
 
-// QueryPlans queries the plans edge of a Subscriptions.
-func (c *SubscriptionsClient) QueryPlans(s *Subscriptions) *PlansQuery {
-	query := &PlansQuery{config: c.config}
+// QueryPlans queries the plans edge of a Subscription.
+func (c *SubscriptionClient) QueryPlans(s *Subscription) *PlanQuery {
+	query := &PlanQuery{config: c.config}
 	id := s.ID
 	step := sqlgraph.NewStep(
-		sqlgraph.From(subscriptions.Table, subscriptions.FieldID, id),
-		sqlgraph.To(plans.Table, plans.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, subscriptions.PlansTable, subscriptions.PlansColumn),
+		sqlgraph.From(subscription.Table, subscription.FieldID, id),
+		sqlgraph.To(plan.Table, plan.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, subscription.PlansTable, subscription.PlansColumn),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 )
@@ -15,7 +16,7 @@ import (
 //
 var dsn string
 
-func ExampleOrderItems() {
+func ExamplePlan() {
 	if dsn == "" {
 		return
 	}
@@ -26,19 +27,39 @@ func ExampleOrderItems() {
 	}
 	defer drv.Close()
 	client := NewClient(Driver(drv))
-	// creating vertices for the orderitems's edges.
-
-	// create orderitems vertex with its edges.
-	oi := client.OrderItems.
+	// creating vertices for the plan's edges.
+	s0 := client.Subscription.
 		Create().
+		SetUserID(1).
+		SetStartAt(time.Now()).
+		SetEndAt(time.Now()).
+		SetStatus("string").
 		SaveX(ctx)
-	log.Println("orderitems created:", oi)
+	log.Println("subscription created:", s0)
+
+	// create plan vertex with its edges.
+	pl := client.Plan.
+		Create().
+		SetTitleI18nID(1).
+		SetPriceID(1).
+		SetStartAt(time.Now()).
+		SetEndAt(time.Now()).
+		SetLength(1).
+		SetUnit("string").
+		AddSubscriptions(s0).
+		SaveX(ctx)
+	log.Println("plan created:", pl)
 
 	// query edges.
+	s0, err = pl.QuerySubscriptions().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying subscriptions: %v", err)
+	}
+	log.Println("subscriptions found:", s0)
 
 	// Output:
 }
-func ExampleOrderTXs() {
+func ExampleSubscription() {
 	if dsn == "" {
 		return
 	}
@@ -49,149 +70,19 @@ func ExampleOrderTXs() {
 	}
 	defer drv.Close()
 	client := NewClient(Driver(drv))
-	// creating vertices for the ordertxs's edges.
+	// creating vertices for the subscription's edges.
 
-	// create ordertxs vertex with its edges.
-	ordertxs := client.OrderTXs.
+	// create subscription vertex with its edges.
+	s := client.Subscription.
 		Create().
+		SetUserID(1).
+		SetStartAt(time.Now()).
+		SetEndAt(time.Now()).
+		SetStatus("string").
 		SaveX(ctx)
-	log.Println("ordertxs created:", ordertxs)
+	log.Println("subscription created:", s)
 
 	// query edges.
-
-	// Output:
-}
-func ExampleOrders() {
-	if dsn == "" {
-		return
-	}
-	ctx := context.Background()
-	drv, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("failed creating database client: %v", err)
-	}
-	defer drv.Close()
-	client := NewClient(Driver(drv))
-	// creating vertices for the orders's edges.
-	ordertxs0 := client.OrderTXs.
-		Create().
-		SaveX(ctx)
-	log.Println("ordertxs created:", ordertxs0)
-	oi1 := client.OrderItems.
-		Create().
-		SaveX(ctx)
-	log.Println("orderitems created:", oi1)
-	pi2 := client.PaymentInstruments.
-		Create().
-		SaveX(ctx)
-	log.Println("paymentinstruments created:", pi2)
-
-	// create orders vertex with its edges.
-	o := client.Orders.
-		Create().
-		AddOrderTxs(ordertxs0).
-		AddOrderItems(oi1).
-		AddPaymentInstruments(pi2).
-		SaveX(ctx)
-	log.Println("orders created:", o)
-
-	// query edges.
-	ordertxs0, err = o.QueryOrderTxs().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying order_txs: %v", err)
-	}
-	log.Println("order_txs found:", ordertxs0)
-
-	oi1, err = o.QueryOrderItems().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying order_items: %v", err)
-	}
-	log.Println("order_items found:", oi1)
-
-	pi2, err = o.QueryPaymentInstruments().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying payment_instruments: %v", err)
-	}
-	log.Println("payment_instruments found:", pi2)
-
-	// Output:
-}
-func ExamplePaymentInstruments() {
-	if dsn == "" {
-		return
-	}
-	ctx := context.Background()
-	drv, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("failed creating database client: %v", err)
-	}
-	defer drv.Close()
-	client := NewClient(Driver(drv))
-	// creating vertices for the paymentinstruments's edges.
-
-	// create paymentinstruments vertex with its edges.
-	pi := client.PaymentInstruments.
-		Create().
-		SaveX(ctx)
-	log.Println("paymentinstruments created:", pi)
-
-	// query edges.
-
-	// Output:
-}
-func ExamplePlans() {
-	if dsn == "" {
-		return
-	}
-	ctx := context.Background()
-	drv, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("failed creating database client: %v", err)
-	}
-	defer drv.Close()
-	client := NewClient(Driver(drv))
-	// creating vertices for the plans's edges.
-
-	// create plans vertex with its edges.
-	pl := client.Plans.
-		Create().
-		SaveX(ctx)
-	log.Println("plans created:", pl)
-
-	// query edges.
-
-	// Output:
-}
-func ExampleSubscriptions() {
-	if dsn == "" {
-		return
-	}
-	ctx := context.Background()
-	drv, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("failed creating database client: %v", err)
-	}
-	defer drv.Close()
-	client := NewClient(Driver(drv))
-	// creating vertices for the subscriptions's edges.
-	pl0 := client.Plans.
-		Create().
-		SaveX(ctx)
-	log.Println("plans created:", pl0)
-
-	// create subscriptions vertex with its edges.
-	s := client.Subscriptions.
-		Create().
-		AddPlans(pl0).
-		SaveX(ctx)
-	log.Println("subscriptions created:", s)
-
-	// query edges.
-	pl0, err = s.QueryPlans().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying plans: %v", err)
-	}
-	log.Println("plans found:", pl0)
 
 	// Output:
 }

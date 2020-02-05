@@ -8,122 +8,54 @@ import (
 )
 
 var (
-	// OrderItemsColumns holds the columns for the "order_items" table.
-	OrderItemsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "orders_order_items", Type: field.TypeInt, Nullable: true},
-	}
-	// OrderItemsTable holds the schema information for the "order_items" table.
-	OrderItemsTable = &schema.Table{
-		Name:       "order_items",
-		Columns:    OrderItemsColumns,
-		PrimaryKey: []*schema.Column{OrderItemsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "order_items_orders_order_items",
-				Columns: []*schema.Column{OrderItemsColumns[1]},
-
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// OrderTxsColumns holds the columns for the "order_txs" table.
-	OrderTxsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "orders_order_txs", Type: field.TypeInt, Nullable: true},
-	}
-	// OrderTxsTable holds the schema information for the "order_txs" table.
-	OrderTxsTable = &schema.Table{
-		Name:       "order_txs",
-		Columns:    OrderTxsColumns,
-		PrimaryKey: []*schema.Column{OrderTxsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "order_txs_orders_order_txs",
-				Columns: []*schema.Column{OrderTxsColumns[1]},
-
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// OrdersColumns holds the columns for the "orders" table.
-	OrdersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-	}
-	// OrdersTable holds the schema information for the "orders" table.
-	OrdersTable = &schema.Table{
-		Name:        "orders",
-		Columns:     OrdersColumns,
-		PrimaryKey:  []*schema.Column{OrdersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
-	}
-	// PaymentInstrumentsColumns holds the columns for the "payment_instruments" table.
-	PaymentInstrumentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "orders_payment_instruments", Type: field.TypeInt, Nullable: true},
-	}
-	// PaymentInstrumentsTable holds the schema information for the "payment_instruments" table.
-	PaymentInstrumentsTable = &schema.Table{
-		Name:       "payment_instruments",
-		Columns:    PaymentInstrumentsColumns,
-		PrimaryKey: []*schema.Column{PaymentInstrumentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "payment_instruments_orders_payment_instruments",
-				Columns: []*schema.Column{PaymentInstrumentsColumns[1]},
-
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// PlansColumns holds the columns for the "plans" table.
 	PlansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "subscriptions_plans", Type: field.TypeInt, Nullable: true},
+		{Name: "title_i18n_id", Type: field.TypeInt64},
+		{Name: "price_id", Type: field.TypeInt64, Unique: true},
+		{Name: "start_at", Type: field.TypeTime},
+		{Name: "end_at", Type: field.TypeTime},
+		{Name: "length", Type: field.TypeUint8},
+		{Name: "unit", Type: field.TypeString, Size: 7},
 	}
 	// PlansTable holds the schema information for the "plans" table.
 	PlansTable = &schema.Table{
-		Name:       "plans",
-		Columns:    PlansColumns,
-		PrimaryKey: []*schema.Column{PlansColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "plans_subscriptions_plans",
-				Columns: []*schema.Column{PlansColumns[1]},
-
-				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
+		Name:        "plans",
+		Columns:     PlansColumns,
+		PrimaryKey:  []*schema.Column{PlansColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// SubscriptionsColumns holds the columns for the "subscriptions" table.
 	SubscriptionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "start_at", Type: field.TypeTime},
+		{Name: "end_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeString, Size: 8},
+		{Name: "plan_subscriptions", Type: field.TypeInt, Nullable: true},
 	}
 	// SubscriptionsTable holds the schema information for the "subscriptions" table.
 	SubscriptionsTable = &schema.Table{
-		Name:        "subscriptions",
-		Columns:     SubscriptionsColumns,
-		PrimaryKey:  []*schema.Column{SubscriptionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "subscriptions",
+		Columns:    SubscriptionsColumns,
+		PrimaryKey: []*schema.Column{SubscriptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "subscriptions_plans_subscriptions",
+				Columns: []*schema.Column{SubscriptionsColumns[5]},
+
+				RefColumns: []*schema.Column{PlansColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		OrderItemsTable,
-		OrderTxsTable,
-		OrdersTable,
-		PaymentInstrumentsTable,
 		PlansTable,
 		SubscriptionsTable,
 	}
 )
 
 func init() {
-	OrderItemsTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderTxsTable.ForeignKeys[0].RefTable = OrdersTable
-	PaymentInstrumentsTable.ForeignKeys[0].RefTable = OrdersTable
-	PlansTable.ForeignKeys[0].RefTable = SubscriptionsTable
+	SubscriptionsTable.ForeignKeys[0].RefTable = PlansTable
 }

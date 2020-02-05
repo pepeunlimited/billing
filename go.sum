@@ -18,10 +18,13 @@ github.com/facebookincubator/ent v0.0.0-20200130190510-c70f1017e3fc h1:55IhnWcpm
 github.com/facebookincubator/ent v0.0.0-20200130190510-c70f1017e3fc/go.mod h1:HPlhuedKSDmFMBdvuPjio8lFficaUcO4U3eMtVxM2Zs=
 github.com/facebookincubator/ent v0.1.1 h1:b3AQ55IcVKz/sNSWWLQY8UQX0nOdwqMxmXtmAPGn8ls=
 github.com/facebookincubator/ent v0.1.1/go.mod h1:HPlhuedKSDmFMBdvuPjio8lFficaUcO4U3eMtVxM2Zs=
+github.com/facebookincubator/ent v0.1.2-0.20200205084332-814474815b7d h1:yDJlAT8cvbyhIoT6mgAB8xdIVVs+tnrYvRz11jfFnuk=
+github.com/facebookincubator/ent v0.1.2-0.20200205084332-814474815b7d/go.mod h1:HPlhuedKSDmFMBdvuPjio8lFficaUcO4U3eMtVxM2Zs=
 github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368 h1:WNHfSP1q2vuAa9vF54RrhCl4nqxCjVcXhlbsRXbGOSY=
 github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368/go.mod h1:7xCgX1lzlrXPHkfvn3EhumqHkmSlzt8at9q7v0ax19c=
 github.com/go-openapi/inflect v0.18.0 h1:4TMtuIyNxWl29TYpb1grUCuNy+koT0oN5ZXHb6wrZ3E=
 github.com/go-openapi/inflect v0.18.0/go.mod h1:lHpZVlpIQqLyKwJ4N+YSc9hchQy/i12fJykb83CRBH4=
+github.com/go-sql-driver/mysql v1.4.1-0.20190510102335-877a9775f068 h1:q2kwd9Bcgl2QpSi/Wjcx9jzwyICt3EWTP5to43QhwaA=
 github.com/go-sql-driver/mysql v1.4.1-0.20190510102335-877a9775f068/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
@@ -116,6 +119,7 @@ golang.org/x/tools v0.0.0-20190226205152-f727befe758c/go.mod h1:9Yl7xja0Znq3iFh3
 golang.org/x/tools v0.0.0-20190311212946-11955173bddd/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a h1:TwMENskLwU2NnWBzrJGEWHqSiGUkO/B4rfyhwqDxDYQ=
 golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
+golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=

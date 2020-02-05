@@ -12,18 +12,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// OrderItems is the client for interacting with the OrderItems builders.
-	OrderItems *OrderItemsClient
-	// OrderTXs is the client for interacting with the OrderTXs builders.
-	OrderTXs *OrderTXsClient
-	// Orders is the client for interacting with the Orders builders.
-	Orders *OrdersClient
-	// PaymentInstruments is the client for interacting with the PaymentInstruments builders.
-	PaymentInstruments *PaymentInstrumentsClient
-	// Plans is the client for interacting with the Plans builders.
-	Plans *PlansClient
-	// Subscriptions is the client for interacting with the Subscriptions builders.
-	Subscriptions *SubscriptionsClient
+	// Plan is the client for interacting with the Plan builders.
+	Plan *PlanClient
+	// Subscription is the client for interacting with the Subscription builders.
+	Subscription *SubscriptionClient
 }
 
 // Commit commits the transaction.
@@ -39,14 +31,10 @@ func (tx *Tx) Rollback() error {
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
 	return &Client{
-		config:             tx.config,
-		Schema:             migrate.NewSchema(tx.driver),
-		OrderItems:         NewOrderItemsClient(tx.config),
-		OrderTXs:           NewOrderTXsClient(tx.config),
-		Orders:             NewOrdersClient(tx.config),
-		PaymentInstruments: NewPaymentInstrumentsClient(tx.config),
-		Plans:              NewPlansClient(tx.config),
-		Subscriptions:      NewSubscriptionsClient(tx.config),
+		config:       tx.config,
+		Schema:       migrate.NewSchema(tx.driver),
+		Plan:         NewPlanClient(tx.config),
+		Subscription: NewSubscriptionClient(tx.config),
 	}
 }
 
@@ -57,7 +45,7 @@ func (tx *Tx) Client() *Client {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: OrderItems.QueryXXX(), the query will be executed
+// applies a query, for example: Plan.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -14,12 +14,10 @@ service SubscriptionService {
 
     rpc StopSubscription(StopSubscriptionParams)       returns (Subscription);
 
-    rpc UpdateSubscription(UpdateSubscriptionParams)   returns (Subscription);
-
     // get subscription with subscription_id or user_id and product_id
     rpc GetSubscription(GetSubscriptionParams)         returns (Subscription);
 
-    rpc GetSubscriptions(GetSubscriptionsParams)       returns (Subscription);
+    rpc GetSubscriptions(GetSubscriptionsParams)       returns (GetSubscriptionsResponse);
 }
 
 message CreateSubscriptionParams {
@@ -38,10 +36,12 @@ message StopSubscriptionParams {
     int64 product_id     = 3;
 }
 
-message UpdateSubscriptionParams {}
-
 message GetSubscriptionsParams {
     int64 user_id       = 1;
+}
+
+message GetSubscriptionsResponse {
+    repeated Subscription subscriptions = 1;
 }
 
 message Subscription {
@@ -56,5 +56,7 @@ message Subscription {
         CANCELED        = 2;
         FAILED          = 3;
         REFUNDED        = 4;
+        PENDING         = 5;
+        TRIAL           = 6;
     }
 }
