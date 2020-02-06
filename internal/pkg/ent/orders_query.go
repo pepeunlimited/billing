@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/predicate"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/txs"
 )
@@ -27,8 +28,10 @@ type OrdersQuery struct {
 	unique     []string
 	predicates []predicate.Orders
 	// eager-loading edges.
-	withTxs   *TxsQuery
-	withItems *ItemQuery
+	withTxs      *TxsQuery
+	withItems    *ItemQuery
+	withPayments *PaymentQuery
+	withFKs      bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -76,6 +79,18 @@ func (oq *OrdersQuery) QueryItems() *ItemQuery {
 		sqlgraph.From(orders.Table, orders.FieldID, oq.sqlQuery()),
 		sqlgraph.To(item.Table, item.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, orders.ItemsTable, orders.ItemsColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+	return query
+}
+
+// QueryPayments chains the current query on the payments edge.
+func (oq *OrdersQuery) QueryPayments() *PaymentQuery {
+	query := &PaymentQuery{config: oq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(orders.Table, orders.FieldID, oq.sqlQuery()),
+		sqlgraph.To(payment.Table, payment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, orders.PaymentsTable, orders.PaymentsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 	return query
@@ -272,6 +287,17 @@ func (oq *OrdersQuery) WithItems(opts ...func(*ItemQuery)) *OrdersQuery {
 	return oq
 }
 
+//  WithPayments tells the query-builder to eager-loads the nodes that are connected to
+// the "payments" edge. The optional arguments used to configure the query builder of the edge.
+func (oq *OrdersQuery) WithPayments(opts ...func(*PaymentQuery)) *OrdersQuery {
+	query := &PaymentQuery{config: oq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withPayments = query
+	return oq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -316,16 +342,27 @@ func (oq *OrdersQuery) Select(field string, fields ...string) *OrdersSelect {
 func (oq *OrdersQuery) sqlAll(ctx context.Context) ([]*Orders, error) {
 	var (
 		nodes       = []*Orders{}
+		withFKs     = oq.withFKs
 		_spec       = oq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			oq.withTxs != nil,
 			oq.withItems != nil,
+			oq.withPayments != nil,
 		}
 	)
+	if oq.withPayments != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, orders.ForeignKeys...)
+	}
 	_spec.ScanValues = func() []interface{} {
 		node := &Orders{config: oq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -396,6 +433,31 @@ func (oq *OrdersQuery) sqlAll(ctx context.Context) ([]*Orders, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "orders_items" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Items = append(node.Edges.Items, n)
+		}
+	}
+
+	if query := oq.withPayments; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Orders)
+		for i := range nodes {
+			if fk := nodes[i].payment_orders; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(payment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "payment_orders" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Payments = n
+			}
 		}
 	}
 

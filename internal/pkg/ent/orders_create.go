@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/txs"
 )
 
@@ -21,6 +22,7 @@ type OrdersCreate struct {
 	user_id    *int64
 	txs        map[int]struct{}
 	items      map[int]struct{}
+	payments   map[int]struct{}
 }
 
 // SetCreatedAt sets the created_at field.
@@ -75,6 +77,28 @@ func (oc *OrdersCreate) AddItems(i ...*Item) *OrdersCreate {
 	return oc.AddItemIDs(ids...)
 }
 
+// SetPaymentsID sets the payments edge to Payment by id.
+func (oc *OrdersCreate) SetPaymentsID(id int) *OrdersCreate {
+	if oc.payments == nil {
+		oc.payments = make(map[int]struct{})
+	}
+	oc.payments[id] = struct{}{}
+	return oc
+}
+
+// SetNillablePaymentsID sets the payments edge to Payment by id if the given value is not nil.
+func (oc *OrdersCreate) SetNillablePaymentsID(id *int) *OrdersCreate {
+	if id != nil {
+		oc = oc.SetPaymentsID(*id)
+	}
+	return oc
+}
+
+// SetPayments sets the payments edge to Payment.
+func (oc *OrdersCreate) SetPayments(p *Payment) *OrdersCreate {
+	return oc.SetPaymentsID(p.ID)
+}
+
 // Save creates the Orders in the database.
 func (oc *OrdersCreate) Save(ctx context.Context) (*Orders, error) {
 	if oc.created_at == nil {
@@ -82,6 +106,9 @@ func (oc *OrdersCreate) Save(ctx context.Context) (*Orders, error) {
 	}
 	if oc.user_id == nil {
 		return nil, errors.New("ent: missing required field \"user_id\"")
+	}
+	if len(oc.payments) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"payments\"")
 	}
 	return oc.sqlSave(ctx)
 }
@@ -152,6 +179,25 @@ func (oc *OrdersCreate) sqlSave(ctx context.Context) (*Orders, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: item.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oc.payments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   orders.PaymentsTable,
+			Columns: []string{orders.PaymentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: payment.FieldID,
 				},
 			},
 		}

@@ -28,6 +28,13 @@ const (
 	ItemsInverseTable = "order_items"
 	// ItemsColumn is the table column denoting the items relation/edge.
 	ItemsColumn = "orders_items"
+	// PaymentsTable is the table the holds the payments relation/edge.
+	PaymentsTable = "orders"
+	// PaymentsInverseTable is the table name for the Payment entity.
+	// It exists in this package in order to avoid circular dependency with the "payment" package.
+	PaymentsInverseTable = "payments"
+	// PaymentsColumn is the table column denoting the payments relation/edge.
+	PaymentsColumn = "payment_orders"
 )
 
 // Columns holds all SQL columns for orders fields.
@@ -35,4 +42,9 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUserID,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Orders type.
+var ForeignKeys = []string{
+	"payment_orders",
 }

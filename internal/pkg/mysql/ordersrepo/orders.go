@@ -2,17 +2,22 @@ package ordersrepo
 
 import (
 	"context"
+	"errors"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
 	"log"
 	"time"
 )
 
+var (
+	ErrOrderNotExist = errors.New("orders: not exist")
+)
+
 type OrdersRepository interface {
 
-	CreateOrder(ctx context.Context, userID int64, items []*ent.Item) (*ent.Orders, error)
+	CreateOrder(ctx context.Context, userID int64, items []*ent.Item) 					  (*ent.Orders, error)
 
-	GetOrderByUserID(ctx context.Context, orderID int, userID int64)
+	GetOrderByUserID(ctx context.Context, orderID int, userID int64)					  (*ent.Orders, error)
 	GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32) ([]*ent.Orders, int64, error)
 
 	Wipe(ctx context.Context)
@@ -43,8 +48,15 @@ func (mysql ordersMySQL) Wipe(ctx context.Context) {
 	mysql.client.Orders.Delete().ExecX(ctx)
 }
 
-func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) () {
-	panic("implement me")
+func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) (*ent.Orders, error) {
+	order, err := mysql.client.Orders.Query().Where(orders.UserID(userID), orders.ID(orderID)).WithItems().WithTxs().Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, ErrOrderNotExist
+		}
+		return nil, err
+	}
+	return order, nil
 }
 
 func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []*ent.Item) (*ent.Orders, error) {
@@ -62,7 +74,7 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 		Txs.
 		Create().
 		SetCreatedAt(now).
-		SetStatus("CREATED").
+		SetStatus(StatusFromString("created").String()).
 		SetOrdersID(order.ID).
 		Save(ctx)
 	if err != nil {
@@ -85,7 +97,7 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 	if err :=  mysql.commit(tx); err != nil {
 		return nil, err
 	}
-	return mysql.client.Orders.Query().Where(orders.ID(order.ID)).WithItems().Only(ctx)
+	return mysql.GetOrderByUserID(ctx, order.ID, userID)
 }
 
 func NewOrdersRepository(client *ent.Client) OrdersRepository {

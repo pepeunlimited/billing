@@ -12,10 +12,14 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Instrument is the client for interacting with the Instrument builders.
+	Instrument *InstrumentClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Orders is the client for interacting with the Orders builders.
 	Orders *OrdersClient
+	// Payment is the client for interacting with the Payment builders.
+	Payment *PaymentClient
 	// Plan is the client for interacting with the Plan builders.
 	Plan *PlanClient
 	// Subscription is the client for interacting with the Subscription builders.
@@ -39,8 +43,10 @@ func (tx *Tx) Client() *Client {
 	return &Client{
 		config:       tx.config,
 		Schema:       migrate.NewSchema(tx.driver),
+		Instrument:   NewInstrumentClient(tx.config),
 		Item:         NewItemClient(tx.config),
 		Orders:       NewOrdersClient(tx.config),
+		Payment:      NewPaymentClient(tx.config),
 		Plan:         NewPlanClient(tx.config),
 		Subscription: NewSubscriptionClient(tx.config),
 		Txs:          NewTxsClient(tx.config),
@@ -54,7 +60,7 @@ func (tx *Tx) Client() *Client {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Item.QueryXXX(), the query will be executed
+// applies a query, for example: Instrument.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

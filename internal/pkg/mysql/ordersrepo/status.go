@@ -1,4 +1,4 @@
-package subscriptionrepo
+package ordersrepo
 
 import "strings"
 
@@ -11,13 +11,14 @@ const (
 	Failed
 	Refunded
 	Pending
+	Created
 )
 
 func (types Status) String() string {
-	return [...]string{"UNKNOWN", "PAID", "CANCELED", "FAILED", "REFUNDED", "PENDING"}[types-1]
+	return [...]string{"UNKNOWN", "PAID", "CANCELED", "FAILED", "REFUNDED", "PENDING", "CREATED"}[types-1]
 }
 
-func SubscriptionTypeFromString(types string) Status {
+func StatusFromString(types string) Status {
 	types = strings.ToLower(types)
 	switch types {
 	case "paid":
@@ -30,6 +31,8 @@ func SubscriptionTypeFromString(types string) Status {
 		return 5
 	case "pending":
 		return 6
+	case "created":
+		return 7
 	default:
 		return 0
 	}

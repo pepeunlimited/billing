@@ -17,7 +17,7 @@ func (Txs) Config() ent.Config {
 
 func (Txs) Fields() []ent.Field {
 	return []ent.Field {
-		field.String("status").MaxLen(10),
+		field.String("status").MaxLen(8),
 		field.Time("created_at"),
 	}
 }

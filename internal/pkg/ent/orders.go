@@ -9,6 +9,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 )
 
 // Orders is the model entity for the Orders schema.
@@ -22,7 +23,8 @@ type Orders struct {
 	UserID int64 `json:"user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrdersQuery when eager-loading is set.
-	Edges OrdersEdges `json:"edges"`
+	Edges          OrdersEdges `json:"edges"`
+	payment_orders *int
 }
 
 // OrdersEdges holds the relations/edges for other nodes in the graph.
@@ -31,9 +33,11 @@ type OrdersEdges struct {
 	Txs []*Txs
 	// Items holds the value of the items edge.
 	Items []*Item
+	// Payments holds the value of the payments edge.
+	Payments *Payment
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TxsOrErr returns the Txs value or an error if the edge
@@ -54,12 +58,33 @@ func (e OrdersEdges) ItemsOrErr() ([]*Item, error) {
 	return nil, &NotLoadedError{edge: "items"}
 }
 
+// PaymentsOrErr returns the Payments value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrdersEdges) PaymentsOrErr() (*Payment, error) {
+	if e.loadedTypes[2] {
+		if e.Payments == nil {
+			// The edge payments was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: payment.Label}
+		}
+		return e.Payments, nil
+	}
+	return nil, &NotLoadedError{edge: "payments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Orders) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // id
 		&sql.NullTime{},  // created_at
 		&sql.NullInt64{}, // user_id
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Orders) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // payment_orders
 	}
 }
 
@@ -85,6 +110,15 @@ func (o *Orders) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		o.UserID = value.Int64
 	}
+	values = values[2:]
+	if len(values) == len(orders.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field payment_orders", value)
+		} else if value.Valid {
+			o.payment_orders = new(int)
+			*o.payment_orders = int(value.Int64)
+		}
+	}
 	return nil
 }
 
@@ -96,6 +130,11 @@ func (o *Orders) QueryTxs() *TxsQuery {
 // QueryItems queries the items edge of the Orders.
 func (o *Orders) QueryItems() *ItemQuery {
 	return (&OrdersClient{o.config}).QueryItems(o)
+}
+
+// QueryPayments queries the payments edge of the Orders.
+func (o *Orders) QueryPayments() *PaymentQuery {
+	return (&OrdersClient{o.config}).QueryPayments(o)
 }
 
 // Update returns a builder for updating this Orders.

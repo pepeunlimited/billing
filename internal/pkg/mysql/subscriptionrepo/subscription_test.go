@@ -22,7 +22,6 @@ func TestSubscriptionMySQL_Create(t *testing.T) {
 	startAt 	:= time.Now().UTC()
 	endAt   	:= time.Now().Add(5 * time.Second).UTC()
 	userID  	:= int64(1)
-	status  	:= SubscriptionTypeFromString("paid")
 	titleI18 	:= int64(1)
 	priceID 	:= int64(1)
 	length 		:= uint8(1)
@@ -38,16 +37,13 @@ func TestSubscriptionMySQL_Create(t *testing.T) {
 		t.Error(err)
 		t.FailNow()
 	}
-	subscription, err := subscriptionrepo.Create(ctx, userID, startAt, endAt, status, plan.ID)
+	subscription, err := subscriptionrepo.Create(ctx, userID, startAt, endAt, plan.ID)
 
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 	if !subscription.EndAt.Equal(endAt) {
-		t.FailNow()
-	}
-	if subscription.Status != "PAID" {
 		t.FailNow()
 	}
 	if !subscription.StartAt.Equal(startAt) {

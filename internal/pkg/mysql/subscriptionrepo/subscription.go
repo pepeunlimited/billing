@@ -13,10 +13,7 @@ var (
 )
 
 type SubscriptionRepository interface {
-	Create(ctx context.Context, userID int64, startAt time.Time, endAt time.Time, status Status, planID int) (*ent.Subscription, error)
-
-	Delete(ctx context.Context)
-	Update(ctx context.Context, subscription *ent.SubscriptionUpdateOne) error
+	Create(ctx context.Context, userID int64, startAt time.Time, endAt time.Time, planID int) (*ent.Subscription, error)
 
 	GetSubscriptionByID(ctx context.Context, subscriptionID int) (*ent.Subscription, error)
 	GetSubscriptionPlanByID(ctx context.Context, subscriptionID int) (*ent.Subscription, *ent.Plan, error)
@@ -65,7 +62,7 @@ func (mysql subscriptionMySQL) GetSubscriptionByUserID(ctx context.Context, user
 	return subs, int64(subs[len(subs) - 1].ID), nil
 }
 
-func (mysql subscriptionMySQL) Create(ctx context.Context, userID int64, startAt time.Time, endAt time.Time, status Status, planID int) (*ent.Subscription, error) {
+func (mysql subscriptionMySQL) Create(ctx context.Context, userID int64, startAt time.Time, endAt time.Time, planID int) (*ent.Subscription, error) {
 	save, err := mysql.
 		client.
 		Subscription.
@@ -73,21 +70,12 @@ func (mysql subscriptionMySQL) Create(ctx context.Context, userID int64, startAt
 		SetUserID(userID).
 		SetEndAt(endAt.UTC()).
 		SetStartAt(startAt.UTC()).
-		SetStatus(status.String()).
 		SetPlansID(planID).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return save, nil
-}
-
-func (mysql subscriptionMySQL) Delete(ctx context.Context) {
-	panic("implement me")
-}
-
-func (mysql subscriptionMySQL) Update(ctx context.Context, subscription *ent.SubscriptionUpdateOne) error {
-	return subscription.Exec(ctx)
 }
 
 func NewSubscriptionRepository(client *ent.Client) SubscriptionRepository {

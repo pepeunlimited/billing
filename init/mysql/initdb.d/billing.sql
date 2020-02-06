@@ -43,21 +43,12 @@ CREATE TABLE plans (
 );
 CREATE TABLE subscriptions (
     id                    BIGINT      NOT NULL AUTO_INCREMENT,
-    user_id               BIGINT NOT NULL,
+    user_id               BIGINT      NOT NULL,
     plan_subscriptions    BIGINT,
     start_at              DATETIME(3) NOT NULL,
     end_at                DATETIME(3) NOT NULL,
-    status                CHAR(8)     NOT NULL, # paid, canceled, failed, refunded, pending
     FOREIGN KEY (plan_subscriptions) REFERENCES plans (id),
     PRIMARY KEY (id)
-);
-#  -------------------
-# |payment_instruments|
-#  -------------------
-CREATE TABLE payment_instruments (
-     id      BIGINT      NOT NULL AUTO_INCREMENT,
-     type    CHAR(12)    UNIQUE NOT NULL,
-     PRIMARY KEY (id)
 );
 #  ------
 # |orders|
@@ -87,14 +78,23 @@ CREATE TABLE order_txs (
     FOREIGN KEY (orders_txs) REFERENCES orders (id),
     PRIMARY KEY (id)
 );
-#  -------
-# |payment|
-#  -------
+#  -------------------
+# |payment_instruments|
+#  -------------------
+CREATE TABLE payment_instruments (
+     id           BIGINT      NOT NULL AUTO_INCREMENT,
+     type         CHAR(12)    UNIQUE NOT NULL,
+     type_i18n_id BIGINT      NULL,                # reserved for the future
+     PRIMARY KEY (id)
+);
+#  --------
+# |payments|
+#  --------
 CREATE TABLE payments (
-     id                                                   BIGINT  NOT NULL AUTO_INCREMENT,
-     orders_orders                                        BIGINT UNIQUE,
-     method_payment_instruments                           BIGINT,
-     FOREIGN KEY (orders_orders)                          REFERENCES orders (id),
-     FOREIGN KEY (method_payment_instruments)             REFERENCES payment_instruments (id),
+     id                                                     BIGINT NOT NULL AUTO_INCREMENT,
+     orders_payments                                        BIGINT UNIQUE,
+     instrument_payments                                    BIGINT,
+     FOREIGN KEY (orders_payments)                          REFERENCES orders (id),
+     FOREIGN KEY (instrument_payments)                      REFERENCES payment_instruments (id),
      PRIMARY KEY (id)
 );

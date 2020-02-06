@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -11,6 +12,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/predicate"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/txs"
 )
@@ -18,14 +20,16 @@ import (
 // OrdersUpdate is the builder for updating Orders entities.
 type OrdersUpdate struct {
 	config
-	created_at   *time.Time
-	user_id      *int64
-	adduser_id   *int64
-	txs          map[int]struct{}
-	items        map[int]struct{}
-	removedTxs   map[int]struct{}
-	removedItems map[int]struct{}
-	predicates   []predicate.Orders
+	created_at      *time.Time
+	user_id         *int64
+	adduser_id      *int64
+	txs             map[int]struct{}
+	items           map[int]struct{}
+	payments        map[int]struct{}
+	removedTxs      map[int]struct{}
+	removedItems    map[int]struct{}
+	clearedPayments bool
+	predicates      []predicate.Orders
 }
 
 // Where adds a new predicate for the builder.
@@ -97,6 +101,28 @@ func (ou *OrdersUpdate) AddItems(i ...*Item) *OrdersUpdate {
 	return ou.AddItemIDs(ids...)
 }
 
+// SetPaymentsID sets the payments edge to Payment by id.
+func (ou *OrdersUpdate) SetPaymentsID(id int) *OrdersUpdate {
+	if ou.payments == nil {
+		ou.payments = make(map[int]struct{})
+	}
+	ou.payments[id] = struct{}{}
+	return ou
+}
+
+// SetNillablePaymentsID sets the payments edge to Payment by id if the given value is not nil.
+func (ou *OrdersUpdate) SetNillablePaymentsID(id *int) *OrdersUpdate {
+	if id != nil {
+		ou = ou.SetPaymentsID(*id)
+	}
+	return ou
+}
+
+// SetPayments sets the payments edge to Payment.
+func (ou *OrdersUpdate) SetPayments(p *Payment) *OrdersUpdate {
+	return ou.SetPaymentsID(p.ID)
+}
+
 // RemoveTxIDs removes the txs edge to Txs by ids.
 func (ou *OrdersUpdate) RemoveTxIDs(ids ...int) *OrdersUpdate {
 	if ou.removedTxs == nil {
@@ -137,8 +163,17 @@ func (ou *OrdersUpdate) RemoveItems(i ...*Item) *OrdersUpdate {
 	return ou.RemoveItemIDs(ids...)
 }
 
+// ClearPayments clears the payments edge to Payment.
+func (ou *OrdersUpdate) ClearPayments() *OrdersUpdate {
+	ou.clearedPayments = true
+	return ou
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ou *OrdersUpdate) Save(ctx context.Context) (int, error) {
+	if len(ou.payments) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"payments\"")
+	}
 	return ou.sqlSave(ctx)
 }
 
@@ -279,6 +314,41 @@ func (ou *OrdersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ou.clearedPayments {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   orders.PaymentsTable,
+			Columns: []string{orders.PaymentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: payment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.payments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   orders.PaymentsTable,
+			Columns: []string{orders.PaymentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: payment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ou.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -291,14 +361,16 @@ func (ou *OrdersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // OrdersUpdateOne is the builder for updating a single Orders entity.
 type OrdersUpdateOne struct {
 	config
-	id           int
-	created_at   *time.Time
-	user_id      *int64
-	adduser_id   *int64
-	txs          map[int]struct{}
-	items        map[int]struct{}
-	removedTxs   map[int]struct{}
-	removedItems map[int]struct{}
+	id              int
+	created_at      *time.Time
+	user_id         *int64
+	adduser_id      *int64
+	txs             map[int]struct{}
+	items           map[int]struct{}
+	payments        map[int]struct{}
+	removedTxs      map[int]struct{}
+	removedItems    map[int]struct{}
+	clearedPayments bool
 }
 
 // SetCreatedAt sets the created_at field.
@@ -364,6 +436,28 @@ func (ouo *OrdersUpdateOne) AddItems(i ...*Item) *OrdersUpdateOne {
 	return ouo.AddItemIDs(ids...)
 }
 
+// SetPaymentsID sets the payments edge to Payment by id.
+func (ouo *OrdersUpdateOne) SetPaymentsID(id int) *OrdersUpdateOne {
+	if ouo.payments == nil {
+		ouo.payments = make(map[int]struct{})
+	}
+	ouo.payments[id] = struct{}{}
+	return ouo
+}
+
+// SetNillablePaymentsID sets the payments edge to Payment by id if the given value is not nil.
+func (ouo *OrdersUpdateOne) SetNillablePaymentsID(id *int) *OrdersUpdateOne {
+	if id != nil {
+		ouo = ouo.SetPaymentsID(*id)
+	}
+	return ouo
+}
+
+// SetPayments sets the payments edge to Payment.
+func (ouo *OrdersUpdateOne) SetPayments(p *Payment) *OrdersUpdateOne {
+	return ouo.SetPaymentsID(p.ID)
+}
+
 // RemoveTxIDs removes the txs edge to Txs by ids.
 func (ouo *OrdersUpdateOne) RemoveTxIDs(ids ...int) *OrdersUpdateOne {
 	if ouo.removedTxs == nil {
@@ -404,8 +498,17 @@ func (ouo *OrdersUpdateOne) RemoveItems(i ...*Item) *OrdersUpdateOne {
 	return ouo.RemoveItemIDs(ids...)
 }
 
+// ClearPayments clears the payments edge to Payment.
+func (ouo *OrdersUpdateOne) ClearPayments() *OrdersUpdateOne {
+	ouo.clearedPayments = true
+	return ouo
+}
+
 // Save executes the query and returns the updated entity.
 func (ouo *OrdersUpdateOne) Save(ctx context.Context) (*Orders, error) {
+	if len(ouo.payments) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"payments\"")
+	}
 	return ouo.sqlSave(ctx)
 }
 
@@ -532,6 +635,41 @@ func (ouo *OrdersUpdateOne) sqlSave(ctx context.Context) (o *Orders, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: item.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ouo.clearedPayments {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   orders.PaymentsTable,
+			Columns: []string{orders.PaymentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: payment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.payments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   orders.PaymentsTable,
+			Columns: []string{orders.PaymentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: payment.FieldID,
 				},
 			},
 		}

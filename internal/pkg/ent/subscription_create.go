@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,7 +19,6 @@ type SubscriptionCreate struct {
 	user_id  *int64
 	start_at *time.Time
 	end_at   *time.Time
-	status   *string
 	plans    map[int]struct{}
 }
 
@@ -39,12 +37,6 @@ func (sc *SubscriptionCreate) SetStartAt(t time.Time) *SubscriptionCreate {
 // SetEndAt sets the end_at field.
 func (sc *SubscriptionCreate) SetEndAt(t time.Time) *SubscriptionCreate {
 	sc.end_at = &t
-	return sc
-}
-
-// SetStatus sets the status field.
-func (sc *SubscriptionCreate) SetStatus(s string) *SubscriptionCreate {
-	sc.status = &s
 	return sc
 }
 
@@ -80,12 +72,6 @@ func (sc *SubscriptionCreate) Save(ctx context.Context) (*Subscription, error) {
 	}
 	if sc.end_at == nil {
 		return nil, errors.New("ent: missing required field \"end_at\"")
-	}
-	if sc.status == nil {
-		return nil, errors.New("ent: missing required field \"status\"")
-	}
-	if err := subscription.StatusValidator(*sc.status); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
 	}
 	if len(sc.plans) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"plans\"")
@@ -136,14 +122,6 @@ func (sc *SubscriptionCreate) sqlSave(ctx context.Context) (*Subscription, error
 			Column: subscription.FieldEndAt,
 		})
 		s.EndAt = *value
-	}
-	if value := sc.status; value != nil {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: subscription.FieldStatus,
-		})
-		s.Status = *value
 	}
 	if nodes := sc.plans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

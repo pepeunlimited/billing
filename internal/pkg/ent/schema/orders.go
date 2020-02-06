@@ -25,7 +25,8 @@ func (Orders) Fields() []ent.Field {
 
 func (Orders) Edges() []ent.Edge {
 	return []ent.Edge {
-		edge.To("txs", 	Txs.Type),    	// one-to-many
-		edge.To("items", 	Item.Type), 	// one-to-many
+		edge.To("txs", 	Txs.Type),    								  // one-to-many
+		edge.To("items", 	Item.Type), 								  // one-to-many
+		edge.From("payments", Payment.Type).Ref("orders").Unique(), // one-to-one
 	}
 }

@@ -23,8 +23,6 @@ type Subscription struct {
 	StartAt time.Time `json:"start_at,omitempty"`
 	// EndAt holds the value of the "end_at" field.
 	EndAt time.Time `json:"end_at,omitempty"`
-	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubscriptionQuery when eager-loading is set.
 	Edges              SubscriptionEdges `json:"edges"`
@@ -57,11 +55,10 @@ func (e SubscriptionEdges) PlansOrErr() (*Plan, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Subscription) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},  // id
-		&sql.NullInt64{},  // user_id
-		&sql.NullTime{},   // start_at
-		&sql.NullTime{},   // end_at
-		&sql.NullString{}, // status
+		&sql.NullInt64{}, // id
+		&sql.NullInt64{}, // user_id
+		&sql.NullTime{},  // start_at
+		&sql.NullTime{},  // end_at
 	}
 }
 
@@ -99,12 +96,7 @@ func (s *Subscription) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		s.EndAt = value.Time
 	}
-	if value, ok := values[3].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field status", values[3])
-	} else if value.Valid {
-		s.Status = value.String
-	}
-	values = values[4:]
+	values = values[3:]
 	if len(values) == len(subscription.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field plan_subscriptions", value)
@@ -150,8 +142,6 @@ func (s *Subscription) String() string {
 	builder.WriteString(s.StartAt.Format(time.ANSIC))
 	builder.WriteString(", end_at=")
 	builder.WriteString(s.EndAt.Format(time.ANSIC))
-	builder.WriteString(", status=")
-	builder.WriteString(s.Status)
 	builder.WriteByte(')')
 	return builder.String()
 }

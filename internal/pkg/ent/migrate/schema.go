@@ -10,6 +10,19 @@ import (
 )
 
 var (
+	// PaymentInstrumentsColumns holds the columns for the "payment_instruments" table.
+	PaymentInstrumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "type", Type: field.TypeString, Unique: true, Size: 12},
+		{Name: "type_i18n_id", Type: field.TypeInt64, Nullable: true},
+	}
+	// PaymentInstrumentsTable holds the schema information for the "payment_instruments" table.
+	PaymentInstrumentsTable = &schema.Table{
+		Name:        "payment_instruments",
+		Columns:     PaymentInstrumentsColumns,
+		PrimaryKey:  []*schema.Column{PaymentInstrumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// OrderItemsColumns holds the columns for the "order_items" table.
 	OrderItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -37,13 +50,42 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "payment_orders", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// OrdersTable holds the schema information for the "orders" table.
 	OrdersTable = &schema.Table{
-		Name:        "orders",
-		Columns:     OrdersColumns,
-		PrimaryKey:  []*schema.Column{OrdersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "orders",
+		Columns:    OrdersColumns,
+		PrimaryKey: []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "orders_payments_orders",
+				Columns: []*schema.Column{OrdersColumns[3]},
+
+				RefColumns: []*schema.Column{PaymentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// PaymentsColumns holds the columns for the "payments" table.
+	PaymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "instrument_payments", Type: field.TypeInt, Nullable: true},
+	}
+	// PaymentsTable holds the schema information for the "payments" table.
+	PaymentsTable = &schema.Table{
+		Name:       "payments",
+		Columns:    PaymentsColumns,
+		PrimaryKey: []*schema.Column{PaymentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "payments_payment_instruments_payments",
+				Columns: []*schema.Column{PaymentsColumns[1]},
+
+				RefColumns: []*schema.Column{PaymentInstrumentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PlansColumns holds the columns for the "plans" table.
 	PlansColumns = []*schema.Column{
@@ -68,7 +110,6 @@ var (
 		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "start_at", Type: field.TypeTime},
 		{Name: "end_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeString, Size: 8},
 		{Name: "plan_subscriptions", Type: field.TypeInt, Nullable: true},
 	}
 	// SubscriptionsTable holds the schema information for the "subscriptions" table.
@@ -79,7 +120,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "subscriptions_plans_subscriptions",
-				Columns: []*schema.Column{SubscriptionsColumns[5]},
+				Columns: []*schema.Column{SubscriptionsColumns[4]},
 
 				RefColumns: []*schema.Column{PlansColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -89,7 +130,7 @@ var (
 	// OrderTxsColumns holds the columns for the "order_txs" table.
 	OrderTxsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "status", Type: field.TypeString, Size: 10},
+		{Name: "status", Type: field.TypeString, Size: 8},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "orders_txs", Type: field.TypeInt, Nullable: true},
 	}
@@ -110,8 +151,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		PaymentInstrumentsTable,
 		OrderItemsTable,
 		OrdersTable,
+		PaymentsTable,
 		PlansTable,
 		SubscriptionsTable,
 		OrderTxsTable,
@@ -120,6 +163,8 @@ var (
 
 func init() {
 	OrderItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrdersTable.ForeignKeys[0].RefTable = PaymentsTable
+	PaymentsTable.ForeignKeys[0].RefTable = PaymentInstrumentsTable
 	SubscriptionsTable.ForeignKeys[0].RefTable = PlansTable
 	OrderTxsTable.ForeignKeys[0].RefTable = OrdersTable
 }

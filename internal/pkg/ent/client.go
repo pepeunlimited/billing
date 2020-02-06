@@ -9,8 +9,10 @@ import (
 
 	"github.com/pepeunlimited/billing/internal/pkg/ent/migrate"
 
+	"github.com/pepeunlimited/billing/internal/pkg/ent/instrument"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/plan"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/subscription"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/txs"
@@ -25,10 +27,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Instrument is the client for interacting with the Instrument builders.
+	Instrument *InstrumentClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Orders is the client for interacting with the Orders builders.
 	Orders *OrdersClient
+	// Payment is the client for interacting with the Payment builders.
+	Payment *PaymentClient
 	// Plan is the client for interacting with the Plan builders.
 	Plan *PlanClient
 	// Subscription is the client for interacting with the Subscription builders.
@@ -44,8 +50,10 @@ func NewClient(opts ...Option) *Client {
 	return &Client{
 		config:       c,
 		Schema:       migrate.NewSchema(c.driver),
+		Instrument:   NewInstrumentClient(c),
 		Item:         NewItemClient(c),
 		Orders:       NewOrdersClient(c),
+		Payment:      NewPaymentClient(c),
 		Plan:         NewPlanClient(c),
 		Subscription: NewSubscriptionClient(c),
 		Txs:          NewTxsClient(c),
@@ -80,8 +88,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
 		config:       cfg,
+		Instrument:   NewInstrumentClient(cfg),
 		Item:         NewItemClient(cfg),
 		Orders:       NewOrdersClient(cfg),
+		Payment:      NewPaymentClient(cfg),
 		Plan:         NewPlanClient(cfg),
 		Subscription: NewSubscriptionClient(cfg),
 		Txs:          NewTxsClient(cfg),
@@ -91,7 +101,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Item.
+//		Instrument.
 //		Query().
 //		Count(ctx)
 //
@@ -103,8 +113,10 @@ func (c *Client) Debug() *Client {
 	return &Client{
 		config:       cfg,
 		Schema:       migrate.NewSchema(cfg.driver),
+		Instrument:   NewInstrumentClient(cfg),
 		Item:         NewItemClient(cfg),
 		Orders:       NewOrdersClient(cfg),
+		Payment:      NewPaymentClient(cfg),
 		Plan:         NewPlanClient(cfg),
 		Subscription: NewSubscriptionClient(cfg),
 		Txs:          NewTxsClient(cfg),
@@ -114,6 +126,84 @@ func (c *Client) Debug() *Client {
 // Close closes the database connection and prevents new queries from starting.
 func (c *Client) Close() error {
 	return c.driver.Close()
+}
+
+// InstrumentClient is a client for the Instrument schema.
+type InstrumentClient struct {
+	config
+}
+
+// NewInstrumentClient returns a client for the Instrument from the given config.
+func NewInstrumentClient(c config) *InstrumentClient {
+	return &InstrumentClient{config: c}
+}
+
+// Create returns a create builder for Instrument.
+func (c *InstrumentClient) Create() *InstrumentCreate {
+	return &InstrumentCreate{config: c.config}
+}
+
+// Update returns an update builder for Instrument.
+func (c *InstrumentClient) Update() *InstrumentUpdate {
+	return &InstrumentUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InstrumentClient) UpdateOne(i *Instrument) *InstrumentUpdateOne {
+	return c.UpdateOneID(i.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InstrumentClient) UpdateOneID(id int) *InstrumentUpdateOne {
+	return &InstrumentUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Instrument.
+func (c *InstrumentClient) Delete() *InstrumentDelete {
+	return &InstrumentDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *InstrumentClient) DeleteOne(i *Instrument) *InstrumentDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *InstrumentClient) DeleteOneID(id int) *InstrumentDeleteOne {
+	return &InstrumentDeleteOne{c.Delete().Where(instrument.ID(id))}
+}
+
+// Create returns a query builder for Instrument.
+func (c *InstrumentClient) Query() *InstrumentQuery {
+	return &InstrumentQuery{config: c.config}
+}
+
+// Get returns a Instrument entity by its id.
+func (c *InstrumentClient) Get(ctx context.Context, id int) (*Instrument, error) {
+	return c.Query().Where(instrument.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InstrumentClient) GetX(ctx context.Context, id int) *Instrument {
+	i, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+// QueryPayments queries the payments edge of a Instrument.
+func (c *InstrumentClient) QueryPayments(i *Instrument) *PaymentQuery {
+	query := &PaymentQuery{config: c.config}
+	id := i.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(instrument.Table, instrument.FieldID, id),
+		sqlgraph.To(payment.Table, payment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, instrument.PaymentsTable, instrument.PaymentsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(i.driver.Dialect(), step)
+
+	return query
 }
 
 // ItemClient is a client for the Item schema.
@@ -282,6 +372,112 @@ func (c *OrdersClient) QueryItems(o *Orders) *ItemQuery {
 		sqlgraph.Edge(sqlgraph.O2M, false, orders.ItemsTable, orders.ItemsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryPayments queries the payments edge of a Orders.
+func (c *OrdersClient) QueryPayments(o *Orders) *PaymentQuery {
+	query := &PaymentQuery{config: c.config}
+	id := o.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(orders.Table, orders.FieldID, id),
+		sqlgraph.To(payment.Table, payment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, orders.PaymentsTable, orders.PaymentsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
+
+	return query
+}
+
+// PaymentClient is a client for the Payment schema.
+type PaymentClient struct {
+	config
+}
+
+// NewPaymentClient returns a client for the Payment from the given config.
+func NewPaymentClient(c config) *PaymentClient {
+	return &PaymentClient{config: c}
+}
+
+// Create returns a create builder for Payment.
+func (c *PaymentClient) Create() *PaymentCreate {
+	return &PaymentCreate{config: c.config}
+}
+
+// Update returns an update builder for Payment.
+func (c *PaymentClient) Update() *PaymentUpdate {
+	return &PaymentUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PaymentClient) UpdateOne(pa *Payment) *PaymentUpdateOne {
+	return c.UpdateOneID(pa.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PaymentClient) UpdateOneID(id int) *PaymentUpdateOne {
+	return &PaymentUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Payment.
+func (c *PaymentClient) Delete() *PaymentDelete {
+	return &PaymentDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PaymentClient) DeleteOne(pa *Payment) *PaymentDeleteOne {
+	return c.DeleteOneID(pa.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PaymentClient) DeleteOneID(id int) *PaymentDeleteOne {
+	return &PaymentDeleteOne{c.Delete().Where(payment.ID(id))}
+}
+
+// Create returns a query builder for Payment.
+func (c *PaymentClient) Query() *PaymentQuery {
+	return &PaymentQuery{config: c.config}
+}
+
+// Get returns a Payment entity by its id.
+func (c *PaymentClient) Get(ctx context.Context, id int) (*Payment, error) {
+	return c.Query().Where(payment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PaymentClient) GetX(ctx context.Context, id int) *Payment {
+	pa, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return pa
+}
+
+// QueryOrders queries the orders edge of a Payment.
+func (c *PaymentClient) QueryOrders(pa *Payment) *OrdersQuery {
+	query := &OrdersQuery{config: c.config}
+	id := pa.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(payment.Table, payment.FieldID, id),
+		sqlgraph.To(orders.Table, orders.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, payment.OrdersTable, payment.OrdersColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryInstruments queries the instruments edge of a Payment.
+func (c *PaymentClient) QueryInstruments(pa *Payment) *InstrumentQuery {
+	query := &InstrumentQuery{config: c.config}
+	id := pa.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(payment.Table, payment.FieldID, id),
+		sqlgraph.To(instrument.Table, instrument.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, payment.InstrumentsTable, payment.InstrumentsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pa.driver.Dialect(), step)
 
 	return query
 }

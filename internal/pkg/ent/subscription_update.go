@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -23,7 +22,6 @@ type SubscriptionUpdate struct {
 	adduser_id   *int64
 	start_at     *time.Time
 	end_at       *time.Time
-	status       *string
 	plans        map[int]struct{}
 	clearedPlans bool
 	predicates   []predicate.Subscription
@@ -64,12 +62,6 @@ func (su *SubscriptionUpdate) SetEndAt(t time.Time) *SubscriptionUpdate {
 	return su
 }
 
-// SetStatus sets the status field.
-func (su *SubscriptionUpdate) SetStatus(s string) *SubscriptionUpdate {
-	su.status = &s
-	return su
-}
-
 // SetPlansID sets the plans edge to Plan by id.
 func (su *SubscriptionUpdate) SetPlansID(id int) *SubscriptionUpdate {
 	if su.plans == nil {
@@ -100,11 +92,6 @@ func (su *SubscriptionUpdate) ClearPlans() *SubscriptionUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (su *SubscriptionUpdate) Save(ctx context.Context) (int, error) {
-	if su.status != nil {
-		if err := subscription.StatusValidator(*su.status); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
-		}
-	}
 	if len(su.plans) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"plans\"")
 	}
@@ -179,13 +166,6 @@ func (su *SubscriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: subscription.FieldEndAt,
 		})
 	}
-	if value := su.status; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: subscription.FieldStatus,
-		})
-	}
 	if su.clearedPlans {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -238,7 +218,6 @@ type SubscriptionUpdateOne struct {
 	adduser_id   *int64
 	start_at     *time.Time
 	end_at       *time.Time
-	status       *string
 	plans        map[int]struct{}
 	clearedPlans bool
 }
@@ -272,12 +251,6 @@ func (suo *SubscriptionUpdateOne) SetEndAt(t time.Time) *SubscriptionUpdateOne {
 	return suo
 }
 
-// SetStatus sets the status field.
-func (suo *SubscriptionUpdateOne) SetStatus(s string) *SubscriptionUpdateOne {
-	suo.status = &s
-	return suo
-}
-
 // SetPlansID sets the plans edge to Plan by id.
 func (suo *SubscriptionUpdateOne) SetPlansID(id int) *SubscriptionUpdateOne {
 	if suo.plans == nil {
@@ -308,11 +281,6 @@ func (suo *SubscriptionUpdateOne) ClearPlans() *SubscriptionUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (suo *SubscriptionUpdateOne) Save(ctx context.Context) (*Subscription, error) {
-	if suo.status != nil {
-		if err := subscription.StatusValidator(*suo.status); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
-		}
-	}
 	if len(suo.plans) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"plans\"")
 	}
@@ -379,13 +347,6 @@ func (suo *SubscriptionUpdateOne) sqlSave(ctx context.Context) (s *Subscription,
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: subscription.FieldEndAt,
-		})
-	}
-	if value := suo.status; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: subscription.FieldStatus,
 		})
 	}
 	if suo.clearedPlans {

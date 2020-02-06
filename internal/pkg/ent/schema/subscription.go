@@ -6,6 +6,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 )
 
+// => `subscriptions`
 type Subscription struct {
 	ent.Schema
 }
@@ -19,7 +20,6 @@ func (Subscription) Fields() []ent.Field {
 		field.Int64("user_id"),
 		field.Time("start_at"),
 		field.Time("end_at"),
-		field.String("status").MaxLen(8),
 	}
 }
 

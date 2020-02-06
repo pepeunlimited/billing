@@ -2,10 +2,6 @@
 
 package subscription
 
-import (
-	"github.com/pepeunlimited/billing/internal/pkg/ent/schema"
-)
-
 const (
 	// Label holds the string label denoting the subscription type in the database.
 	Label = "subscription"
@@ -17,8 +13,6 @@ const (
 	FieldStartAt = "start_at"
 	// FieldEndAt holds the string denoting the end_at vertex property in the database.
 	FieldEndAt = "end_at"
-	// FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus = "status"
 
 	// Table holds the table name of the subscription in the database.
 	Table = "subscriptions"
@@ -37,19 +31,9 @@ var Columns = []string{
 	FieldUserID,
 	FieldStartAt,
 	FieldEndAt,
-	FieldStatus,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Subscription type.
 var ForeignKeys = []string{
 	"plan_subscriptions",
 }
-
-var (
-	fields = schema.Subscription{}.Fields()
-
-	// descStatus is the schema descriptor for status field.
-	descStatus = fields[3].Descriptor()
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator = descStatus.Validators[0].(func(string) error)
-)
