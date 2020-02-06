@@ -11,9 +11,9 @@ import (
 type OrdersRepository interface {
 
 	CreateOrder(ctx context.Context, userID int64, items []*ent.Item) (*ent.Orders, error)
-	CreateOrderStatus(ctx context.Context, orderID int, userID int64)
 
 	GetOrderByUserID(ctx context.Context, orderID int, userID int64)
+	GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32) ([]*ent.Orders, int64, error)
 
 	Wipe(ctx context.Context)
 }
@@ -22,13 +22,28 @@ type ordersMySQL struct {
 	client *ent.Client
 }
 
+func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32) ([]*ent.Orders, int64, error) {
+	order, err := mysql.client.Orders.Query().Where(
+		orders.UserID(userID),
+		orders.IDGT(int(pageToken))).
+		Order(ent.Asc(orders.FieldID)).
+		Limit(int(pageSize)).WithItems().WithItems().All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(order) == 0 {
+		return []*ent.Orders{}, pageToken, nil
+	}
+	return order, int64(order[len(order) - 1].ID), nil
+}
+
 func (mysql ordersMySQL) Wipe(ctx context.Context) {
 	mysql.client.Txs.Delete().ExecX(ctx)
 	mysql.client.Item.Delete().ExecX(ctx)
 	mysql.client.Orders.Delete().ExecX(ctx)
 }
 
-func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) {
+func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) () {
 	panic("implement me")
 }
 
@@ -71,10 +86,6 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 		return nil, err
 	}
 	return mysql.client.Orders.Query().Where(orders.ID(order.ID)).WithItems().Only(ctx)
-}
-
-func (mysql ordersMySQL) CreateOrderStatus(ctx context.Context, orderID int, userID int64) {
-	panic("implement me")
 }
 
 func NewOrdersRepository(client *ent.Client) OrdersRepository {

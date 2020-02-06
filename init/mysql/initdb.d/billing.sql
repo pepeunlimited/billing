@@ -81,7 +81,7 @@ CREATE TABLE order_items (
 );
 CREATE TABLE order_txs (
     id          BIGINT      NOT NULL AUTO_INCREMENT,
-    status      CHAR(10)    NOT NULL,
+    status      CHAR(8)     NOT NULL,
     orders_txs  BIGINT      NULL,
     created_at  DATETIME(3) NOT NULL,
     FOREIGN KEY (orders_txs) REFERENCES orders (id),

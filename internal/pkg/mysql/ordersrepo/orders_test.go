@@ -40,3 +40,40 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestOrdersMySQL_GetOrdersByUserID(t *testing.T) {
+	ctx := context.TODO()
+	ordersrepo := NewOrdersRepository(ent.NewEntClient())
+	ordersrepo.Wipe(ctx)
+	userID := int64(1)
+	items := []*ent.Item{
+		&ent.Item{
+			PriceID:  100,
+			Quantity: 1,
+		},
+		&ent.Item{
+			PriceID:  200,
+			Quantity: 1,
+		},
+	}
+	ordersrepo.CreateOrder(ctx, userID, items)
+	ordersrepo.CreateOrder(ctx, userID, items)
+	ordersrepo.CreateOrder(ctx, userID, items)
+	ordersrepo.CreateOrder(ctx, userID, items)
+
+	ordersList, nextPageToken, err := ordersrepo.GetOrdersByUserID(ctx, userID, 0, 0)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if nextPageToken == 0 {
+		t.FailNow()
+	}
+	if len(ordersList) != 4 {
+		t.Log(len(ordersList))
+		t.FailNow()
+	}
+	if ordersList[0].Edges.Items[0].PriceID != 100 {
+		t.FailNow()
+	}
+}
