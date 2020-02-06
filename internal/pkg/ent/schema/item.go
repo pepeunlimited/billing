@@ -4,25 +4,26 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/schema"
 )
 
+// => `order_items`
 type Item struct {
 	ent.Schema
 }
 
 func (Item) Config() ent.Config {
-	return ent.Config{Table:"items"}
+	return ent.Config{Table:"order_items"}
 }
 
 func (Item) Fields() []ent.Field {
 	return []ent.Field {
-		field.String("a"),
+		field.Int64("price_id"),
+		field.Uint8("quantity").Default(1),
 	}
 }
 
 func (Item) Edges() []ent.Edge {
 	return []ent.Edge {
-		edge.From("orders", schema.Order.Type).Ref("items").Unique(), // many-to-one
+		edge.From("orders", Orders.Type).Ref("items").Unique(), // many-to-one
 	}
 }

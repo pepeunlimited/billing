@@ -6,8 +6,17 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 )
 
+// Item is the predicate function for item builders.
+type Item func(*sql.Selector)
+
+// Orders is the predicate function for orders builders.
+type Orders func(*sql.Selector)
+
 // Plan is the predicate function for plan builders.
 type Plan func(*sql.Selector)
 
 // Subscription is the predicate function for subscription builders.
 type Subscription func(*sql.Selector)
+
+// Txs is the predicate function for txs builders.
+type Txs func(*sql.Selector)

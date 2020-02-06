@@ -30,7 +30,7 @@ func TestPlanMySQL_Create(t *testing.T) {
 func TestPlanMySQL_LengthByPlansID(t *testing.T) {
 	ctx := context.TODO()
 	plans := NewPlanRepository(ent.NewEntClient())
-	plans.Delete(ctx)
+	plans.Wipe(ctx)
 
 	startAt := time.Now()
 	endAt 	:= time.Now()
@@ -102,6 +102,49 @@ func TestPlanMySQL_LengthByPlansID(t *testing.T) {
 		t.FailNow()
 	}
 	if !startAt.AddDate(1,0,0).UTC().Equal(endAt) {
+		t.FailNow()
+	}
+}
+
+
+func TestPlanMySQL_GetPlans(t *testing.T) {
+	ctx := context.TODO()
+	plansrepo := NewPlanRepository(ent.NewEntClient())
+	plansrepo.Wipe(ctx)
+
+	now := time.Now()
+
+	titleI18nId1 := int64(1)
+	titleI18nId2 := int64(2)
+	titleI18nId3 := int64(3)
+	priceId1 := int64(1)
+	priceId2 := int64(2)
+	priceId3 := int64(3)
+	length 	:= uint8(1)
+	unit 	:= PlanUnitFromString("days")
+
+	// active
+	startAt := now
+	endAt 	:= now.Add(10 * time.Second)
+	plansrepo.Create(ctx, startAt, endAt, titleI18nId1, priceId1, length, unit)
+	// before
+	startAt = now.Add(-20 * time.Second)
+	endAt 	= now.Add(-1 * time.Second)
+	plansrepo.Create(ctx, startAt, endAt, titleI18nId2, priceId2, length, unit)
+	// after
+	startAt = now.Add(20 * time.Second)
+	endAt 	= now.Add(30 * time.Second)
+	plansrepo.Create(ctx, startAt, endAt, titleI18nId3, priceId3, length, unit)
+
+	plans, err := plansrepo.GetPlans(ctx, true)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if len(plans) != 1 {
+		t.FailNow()
+	}
+	if plans[0].TitleI18nID != 1 {
 		t.FailNow()
 	}
 }

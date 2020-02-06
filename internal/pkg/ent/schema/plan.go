@@ -6,6 +6,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 )
 
+// => `plans`
 type Plan struct {
 	ent.Schema
 }

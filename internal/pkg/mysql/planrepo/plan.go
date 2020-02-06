@@ -9,22 +9,36 @@ import (
 )
 
 var (
-	ErrPlanNotExist 		= errors.New("plans: plan not exist")
-	ErrUnknownPlanUnit 		= errors.New("plans: unknown plan unit")
+	ErrPlanNotExist 			= errors.New("plans: plan not exist")
+	ErrUnknownPlanUnit 			= errors.New("plans: unknown plan unit")
+	ErrPriceIDAlreadyExist   	= errors.New("plans: priceId already exist")
 )
 
 type PlanRepository interface {
 	Create(ctx context.Context, startAt time.Time, endAt time.Time, titleI18nId int64, priceId int64, length uint8, unit Unit) (*ent.Plan, error)
 
 	LengthByPlansID(ctx context.Context, startAt time.Time, plansID int) (time.Time, error)
+
 	GetPlansByID(ctx context.Context, plansID int) 						 (*ent.Plan, error)
 	GetPlansByPriceID(ctx context.Context, priceID int64)				 (*ent.Plan, error)
+	GetPlans(ctx context.Context, active bool) 							 ([]*ent.Plan, error)
 
-	Delete(ctx context.Context)
+	Wipe(ctx context.Context)
 }
 
 type planMySQL struct {
 	client *ent.Client
+}
+
+func (mysql planMySQL) GetPlans(ctx context.Context, active bool) ([]*ent.Plan, error) {
+	query := mysql.client.Plan.Query()
+	now := time.Now().UTC()
+	if active {
+		query.Where(plan.And(
+			plan.StartAtLTE(now),
+			plan.EndAtGTE(now)))
+	}
+	return query.All(ctx)
 }
 
 func (mysql planMySQL) GetPlansByPriceID(ctx context.Context, plansID int64) (*ent.Plan, error) {
@@ -69,7 +83,7 @@ func (mysql planMySQL) LengthByPlansID(ctx context.Context, startAt time.Time, p
 	return time.Time{}, ErrUnknownPlanUnit
 }
 
-func (mysql planMySQL) Delete(ctx context.Context) {
+func (mysql planMySQL) Wipe(ctx context.Context) {
 	mysql.client.Subscription.Delete().ExecX(ctx)
 	mysql.client.Plan.Delete().ExecX(ctx)
 }
@@ -87,6 +101,9 @@ func (mysql planMySQL) Create(ctx context.Context, startAt time.Time, endAt time
 		SetUnit(unit.String()).
 		Save(ctx)
 	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, ErrPriceIDAlreadyExist
+		}
 		return nil, err
 	}
 	return plans, nil

@@ -12,9 +12,9 @@ func TestSubscriptionMySQL_Create(t *testing.T) {
 	client := ent.NewEntClient()
 
 	ctx := context.TODO()
-	subscription := NewSubscriptionRepository(client)
-	plans 		 := planrepo.NewPlanRepository(client)
-	plans.Delete(ctx)
+	subscriptionrepo := NewSubscriptionRepository(client)
+	plans 		 	 := planrepo.NewPlanRepository(client)
+	plans.Wipe(ctx)
 
 	// create the plan
 	// and assign it to subscriptions
@@ -38,5 +38,22 @@ func TestSubscriptionMySQL_Create(t *testing.T) {
 		t.Error(err)
 		t.FailNow()
 	}
-	subscription.Create(ctx, userID, startAt, endAt, status, plan.ID)
+	subscription, err := subscriptionrepo.Create(ctx, userID, startAt, endAt, status, plan.ID)
+
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if !subscription.EndAt.Equal(endAt) {
+		t.FailNow()
+	}
+	if subscription.Status != "PAID" {
+		t.FailNow()
+	}
+	if !subscription.StartAt.Equal(startAt) {
+		t.FailNow()
+	}
+	if subscription.UserID != userID {
+		t.FailNow()
+	}
 }

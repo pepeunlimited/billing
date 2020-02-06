@@ -26,6 +26,5 @@ func (Subscription) Fields() []ent.Field {
 func (Subscription) Edges() []ent.Edge {
 	return []ent.Edge {
 		edge.From("plans", Plan.Type).Ref("subscriptions").Unique(), // many-to-one
-
 	}
 }

@@ -62,30 +62,39 @@ CREATE TABLE payment_instruments (
 #  ------
 # |orders|
 #  ------
-# alis order = payment.. what ever..
+# alias order = payment.. what ever..
 CREATE TABLE orders (
     id                        BIGINT      NOT NULL AUTO_INCREMENT,
     created_at                DATETIME(3) NOT NULL,
     user_id                   BIGINT      NOT NULL,
     tax_rate_id               BIGINT      NULL,   # reserved for the future
     shipment_cost_id          BIGINT      NULL,   # reserved for the future
-    payment_instrument_orders BIGINT,
-    FOREIGN KEY (payment_instrument_orders) REFERENCES payment_instruments (id),
     PRIMARY KEY (id)
 );
 CREATE TABLE order_items (
     id          BIGINT  NOT NULL AUTO_INCREMENT,
     price_id    BIGINT  NOT NULL,
-    order_items BIGINT,
+    orders_items BIGINT,
     quantity    TINYINT UNSIGNED DEFAULT 1,
-    FOREIGN KEY (order_items) REFERENCES orders (id),
+    FOREIGN KEY (orders_items) REFERENCES orders (id),
     PRIMARY KEY (id)
 );
 CREATE TABLE order_txs (
     id          BIGINT      NOT NULL AUTO_INCREMENT,
     status      CHAR(10)    NOT NULL,
-    order_txs   BIGINT      NULL,
+    orders_txs  BIGINT      NULL,
     created_at  DATETIME(3) NOT NULL,
-    FOREIGN KEY (order_txs) REFERENCES orders (id),
+    FOREIGN KEY (orders_txs) REFERENCES orders (id),
     PRIMARY KEY (id)
+);
+#  -------
+# |payment|
+#  -------
+CREATE TABLE payments (
+     id                                                   BIGINT  NOT NULL AUTO_INCREMENT,
+     orders_orders                                        BIGINT UNIQUE,
+     method_payment_instruments                           BIGINT,
+     FOREIGN KEY (orders_orders)                          REFERENCES orders (id),
+     FOREIGN KEY (method_payment_instruments)             REFERENCES payment_instruments (id),
+     PRIMARY KEY (id)
 );

@@ -3,11 +3,48 @@
 package migrate
 
 import (
+	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
+
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/ent/schema/field"
 )
 
 var (
+	// OrderItemsColumns holds the columns for the "order_items" table.
+	OrderItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "price_id", Type: field.TypeInt64},
+		{Name: "quantity", Type: field.TypeUint8, Default: item.DefaultQuantity},
+		{Name: "orders_items", Type: field.TypeInt, Nullable: true},
+	}
+	// OrderItemsTable holds the schema information for the "order_items" table.
+	OrderItemsTable = &schema.Table{
+		Name:       "order_items",
+		Columns:    OrderItemsColumns,
+		PrimaryKey: []*schema.Column{OrderItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "order_items_orders_items",
+				Columns: []*schema.Column{OrderItemsColumns[3]},
+
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// OrdersColumns holds the columns for the "orders" table.
+	OrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// OrdersTable holds the schema information for the "orders" table.
+	OrdersTable = &schema.Table{
+		Name:        "orders",
+		Columns:     OrdersColumns,
+		PrimaryKey:  []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// PlansColumns holds the columns for the "plans" table.
 	PlansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -49,13 +86,40 @@ var (
 			},
 		},
 	}
+	// OrderTxsColumns holds the columns for the "order_txs" table.
+	OrderTxsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "status", Type: field.TypeString, Size: 10},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "orders_txs", Type: field.TypeInt, Nullable: true},
+	}
+	// OrderTxsTable holds the schema information for the "order_txs" table.
+	OrderTxsTable = &schema.Table{
+		Name:       "order_txs",
+		Columns:    OrderTxsColumns,
+		PrimaryKey: []*schema.Column{OrderTxsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "order_txs_orders_txs",
+				Columns: []*schema.Column{OrderTxsColumns[3]},
+
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		OrderItemsTable,
+		OrdersTable,
 		PlansTable,
 		SubscriptionsTable,
+		OrderTxsTable,
 	}
 )
 
 func init() {
+	OrderItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	SubscriptionsTable.ForeignKeys[0].RefTable = PlansTable
+	OrderTxsTable.ForeignKeys[0].RefTable = OrdersTable
 }

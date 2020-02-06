@@ -16,6 +16,81 @@ import (
 //
 var dsn string
 
+func ExampleItem() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the item's edges.
+
+	// create item vertex with its edges.
+	i := client.Item.
+		Create().
+		SetPriceID(1).
+		SetQuantity(1).
+		SaveX(ctx)
+	log.Println("item created:", i)
+
+	// query edges.
+
+	// Output:
+}
+func ExampleOrders() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the orders's edges.
+	t0 := client.Txs.
+		Create().
+		SetStatus("string").
+		SetCreatedAt(time.Now()).
+		SaveX(ctx)
+	log.Println("txs created:", t0)
+	i1 := client.Item.
+		Create().
+		SetPriceID(1).
+		SetQuantity(1).
+		SaveX(ctx)
+	log.Println("item created:", i1)
+
+	// create orders vertex with its edges.
+	o := client.Orders.
+		Create().
+		SetCreatedAt(time.Now()).
+		SetUserID(1).
+		AddTxs(t0).
+		AddItems(i1).
+		SaveX(ctx)
+	log.Println("orders created:", o)
+
+	// query edges.
+	t0, err = o.QueryTxs().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying txs: %v", err)
+	}
+	log.Println("txs found:", t0)
+
+	i1, err = o.QueryItems().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying items: %v", err)
+	}
+	log.Println("items found:", i1)
+
+	// Output:
+}
 func ExamplePlan() {
 	if dsn == "" {
 		return
@@ -81,6 +156,31 @@ func ExampleSubscription() {
 		SetStatus("string").
 		SaveX(ctx)
 	log.Println("subscription created:", s)
+
+	// query edges.
+
+	// Output:
+}
+func ExampleTxs() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the txs's edges.
+
+	// create txs vertex with its edges.
+	t := client.Txs.
+		Create().
+		SetStatus("string").
+		SetCreatedAt(time.Now()).
+		SaveX(ctx)
+	log.Println("txs created:", t)
 
 	// query edges.
 

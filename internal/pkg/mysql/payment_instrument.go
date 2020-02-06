@@ -4,6 +4,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/schema"
 )
 
 type PaymentInstrument struct {
@@ -22,6 +23,6 @@ func (PaymentInstrument) Fields() []ent.Field {
 
 func (PaymentInstrument) Edges() []ent.Edge {
 	return []ent.Edge {
-		edge.To("orders", Order.Type),  		// one-to-many
+		edge.To("orders", schema.Order.Type), // one-to-many
 	}
 }
