@@ -383,7 +383,7 @@ func (c *OrdersClient) QueryPayments(o *Orders) *PaymentQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(orders.Table, orders.FieldID, id),
 		sqlgraph.To(payment.Table, payment.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, orders.PaymentsTable, orders.PaymentsColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, orders.PaymentsTable, orders.PaymentsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(o.driver.Dialect(), step)
 
@@ -461,7 +461,7 @@ func (c *PaymentClient) QueryOrders(pa *Payment) *OrdersQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(payment.Table, payment.FieldID, id),
 		sqlgraph.To(orders.Table, orders.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, payment.OrdersTable, payment.OrdersColumn),
+		sqlgraph.Edge(sqlgraph.O2O, true, payment.OrdersTable, payment.OrdersColumn),
 	)
 	query.sql = sqlgraph.Neighbors(pa.driver.Dialect(), step)
 

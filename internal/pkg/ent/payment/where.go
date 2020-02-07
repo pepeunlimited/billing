@@ -107,7 +107,7 @@ func HasOrders() predicate.Payment {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(OrdersTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, OrdersTable, OrdersColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, OrdersTable, OrdersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	},
@@ -120,7 +120,7 @@ func HasOrdersWith(preds ...predicate.Orders) predicate.Payment {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(OrdersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, OrdersTable, OrdersColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, OrdersTable, OrdersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

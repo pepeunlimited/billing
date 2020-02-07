@@ -23,8 +23,7 @@ type Orders struct {
 	UserID int64 `json:"user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrdersQuery when eager-loading is set.
-	Edges          OrdersEdges `json:"edges"`
-	payment_orders *int
+	Edges OrdersEdges `json:"edges"`
 }
 
 // OrdersEdges holds the relations/edges for other nodes in the graph.
@@ -81,13 +80,6 @@ func (*Orders) scanValues() []interface{} {
 	}
 }
 
-// fkValues returns the types for scanning foreign-keys values from sql.Rows.
-func (*Orders) fkValues() []interface{} {
-	return []interface{}{
-		&sql.NullInt64{}, // payment_orders
-	}
-}
-
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Orders fields.
 func (o *Orders) assignValues(values ...interface{}) error {
@@ -109,15 +101,6 @@ func (o *Orders) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field user_id", values[1])
 	} else if value.Valid {
 		o.UserID = value.Int64
-	}
-	values = values[2:]
-	if len(values) == len(orders.ForeignKeys) {
-		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field payment_orders", value)
-		} else if value.Valid {
-			o.payment_orders = new(int)
-			*o.payment_orders = int(value.Int64)
-		}
 	}
 	return nil
 }

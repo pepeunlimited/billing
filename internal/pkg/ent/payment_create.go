@@ -98,7 +98,7 @@ func (pc *PaymentCreate) sqlSave(ctx context.Context) (*Payment, error) {
 	if nodes := pc.orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   payment.OrdersTable,
 			Columns: []string{payment.OrdersColumn},
 			Bidi:    false,

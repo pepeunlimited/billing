@@ -3,6 +3,7 @@ package ordersrepo
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
+	"github.com/pepeunlimited/billing/internal/pkg/mysql/paymentrepo"
 	"testing"
 )
 
@@ -10,6 +11,9 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 	ctx := context.TODO()
 	ordersrepo := NewOrdersRepository(ent.NewEntClient())
 	ordersrepo.Wipe(ctx)
+	pay := paymentrepo.NewPaymentRepository(ent.NewEntClient())
+	pay.Wipe(ctx)
+
 	userID := int64(1)
 	items := []*ent.Item{
 		&ent.Item{
@@ -37,6 +41,19 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 		t.FailNow()
 	}
 	if orderItems[1].PriceID != 200 {
+		t.FailNow()
+	}
+	instrument, err := pay.CreatePaymentInstrument(ctx, paymentrepo.PaymentTypeFromString("apple"))
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	payment, err := pay.CreatePayment(ctx, order.ID, instrument.ID)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if payment == nil {
 		t.FailNow()
 	}
 }

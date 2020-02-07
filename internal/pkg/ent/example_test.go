@@ -100,6 +100,10 @@ func ExampleOrders() {
 		SetQuantity(1).
 		SaveX(ctx)
 	log.Println("item created:", i1)
+	pa2 := client.Payment.
+		Create().
+		SaveX(ctx)
+	log.Println("payment created:", pa2)
 
 	// create orders vertex with its edges.
 	o := client.Orders.
@@ -108,6 +112,7 @@ func ExampleOrders() {
 		SetUserID(1).
 		AddTxs(t0).
 		AddItems(i1).
+		SetPayments(pa2).
 		SaveX(ctx)
 	log.Println("orders created:", o)
 
@@ -124,6 +129,12 @@ func ExampleOrders() {
 	}
 	log.Println("items found:", i1)
 
+	pa2, err = o.QueryPayments().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying payments: %v", err)
+	}
+	log.Println("payments found:", pa2)
+
 	// Output:
 }
 func ExamplePayment() {
@@ -138,26 +149,14 @@ func ExamplePayment() {
 	defer drv.Close()
 	client := NewClient(Driver(drv))
 	// creating vertices for the payment's edges.
-	o0 := client.Orders.
-		Create().
-		SetCreatedAt(time.Now()).
-		SetUserID(1).
-		SaveX(ctx)
-	log.Println("orders created:", o0)
 
 	// create payment vertex with its edges.
 	pa := client.Payment.
 		Create().
-		SetOrders(o0).
 		SaveX(ctx)
 	log.Println("payment created:", pa)
 
 	// query edges.
-	o0, err = pa.QueryOrders().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying orders: %v", err)
-	}
-	log.Println("orders found:", o0)
 
 	// Output:
 }

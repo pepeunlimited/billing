@@ -32,7 +32,7 @@ func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pa
 		orders.UserID(userID),
 		orders.IDGT(int(pageToken))).
 		Order(ent.Asc(orders.FieldID)).
-		Limit(int(pageSize)).WithItems().WithItems().All(ctx)
+		Limit(int(pageSize)).WithItems().WithPayments().WithItems().All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,7 +49,7 @@ func (mysql ordersMySQL) Wipe(ctx context.Context) {
 }
 
 func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) (*ent.Orders, error) {
-	order, err := mysql.client.Orders.Query().Where(orders.UserID(userID), orders.ID(orderID)).WithItems().WithTxs().Only(ctx)
+	order, err := mysql.client.Orders.Query().Where(orders.UserID(userID), orders.ID(orderID)).WithPayments().WithItems().WithTxs().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, ErrOrderNotExist

@@ -15,14 +15,12 @@ func (Payment) Config() ent.Config {
 }
 
 func (Payment) Fields() []ent.Field {
-	return []ent.Field{
-
-	}
+	return []ent.Field{}
 }
 
 func (Payment) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("orders", Orders.Type).Unique(),
+		edge.From("orders", Orders.Type).Ref("payments").Unique(), // many-to-one
 		edge.From("instruments", Instrument.Type).Ref("payments").Unique(), // many-to-one
 	}
 }

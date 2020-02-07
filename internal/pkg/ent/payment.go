@@ -21,6 +21,7 @@ type Payment struct {
 	// The values are being populated by the PaymentQuery when eager-loading is set.
 	Edges               PaymentEdges `json:"edges"`
 	instrument_payments *int
+	orders_payments     *int
 }
 
 // PaymentEdges holds the relations/edges for other nodes in the graph.
@@ -73,6 +74,7 @@ func (*Payment) scanValues() []interface{} {
 func (*Payment) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // instrument_payments
+		&sql.NullInt64{}, // orders_payments
 	}
 }
 
@@ -95,6 +97,12 @@ func (pa *Payment) assignValues(values ...interface{}) error {
 		} else if value.Valid {
 			pa.instrument_payments = new(int)
 			*pa.instrument_payments = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field orders_payments", value)
+		} else if value.Valid {
+			pa.orders_payments = new(int)
+			*pa.orders_payments = int(value.Int64)
 		}
 	}
 	return nil

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -64,7 +63,7 @@ func (pq *PaymentQuery) QueryOrders() *OrdersQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(payment.Table, payment.FieldID, pq.sqlQuery()),
 		sqlgraph.To(orders.Table, orders.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, payment.OrdersTable, payment.OrdersColumn),
+		sqlgraph.Edge(sqlgraph.O2O, true, payment.OrdersTable, payment.OrdersColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
@@ -300,7 +299,7 @@ func (pq *PaymentQuery) sqlAll(ctx context.Context) ([]*Payment, error) {
 			pq.withInstruments != nil,
 		}
 	)
-	if pq.withInstruments != nil {
+	if pq.withOrders != nil || pq.withInstruments != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -331,30 +330,27 @@ func (pq *PaymentQuery) sqlAll(ctx context.Context) ([]*Payment, error) {
 	}
 
 	if query := pq.withOrders; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*Payment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Payment)
 		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+			if fk := nodes[i].orders_payments; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
 		}
-		query.withFKs = true
-		query.Where(predicate.Orders(func(s *sql.Selector) {
-			s.Where(sql.InValues(payment.OrdersColumn, fks...))
-		}))
+		query.Where(orders.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.payment_orders
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "payment_orders" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "payment_orders" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "orders_payments" returned %v`, n.ID)
 			}
-			node.Edges.Orders = n
+			for i := range nodes {
+				nodes[i].Edges.Orders = n
+			}
 		}
 	}
 

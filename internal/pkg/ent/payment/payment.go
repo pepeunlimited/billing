@@ -11,12 +11,12 @@ const (
 	// Table holds the table name of the payment in the database.
 	Table = "payments"
 	// OrdersTable is the table the holds the orders relation/edge.
-	OrdersTable = "orders"
+	OrdersTable = "payments"
 	// OrdersInverseTable is the table name for the Orders entity.
 	// It exists in this package in order to avoid circular dependency with the "orders" package.
 	OrdersInverseTable = "orders"
 	// OrdersColumn is the table column denoting the orders relation/edge.
-	OrdersColumn = "payment_orders"
+	OrdersColumn = "orders_payments"
 	// InstrumentsTable is the table the holds the instruments relation/edge.
 	InstrumentsTable = "payments"
 	// InstrumentsInverseTable is the table name for the Instrument entity.
@@ -34,4 +34,5 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the Payment type.
 var ForeignKeys = []string{
 	"instrument_payments",
+	"orders_payments",
 }

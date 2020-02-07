@@ -317,7 +317,7 @@ func (ou *OrdersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if ou.clearedPayments {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   orders.PaymentsTable,
 			Columns: []string{orders.PaymentsColumn},
 			Bidi:    false,
@@ -333,7 +333,7 @@ func (ou *OrdersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := ou.payments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   orders.PaymentsTable,
 			Columns: []string{orders.PaymentsColumn},
 			Bidi:    false,
@@ -646,7 +646,7 @@ func (ouo *OrdersUpdateOne) sqlSave(ctx context.Context) (o *Orders, err error) 
 	if ouo.clearedPayments {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   orders.PaymentsTable,
 			Columns: []string{orders.PaymentsColumn},
 			Bidi:    false,
@@ -662,7 +662,7 @@ func (ouo *OrdersUpdateOne) sqlSave(ctx context.Context) (o *Orders, err error) 
 	if nodes := ouo.payments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   orders.PaymentsTable,
 			Columns: []string{orders.PaymentsColumn},
 			Bidi:    false,

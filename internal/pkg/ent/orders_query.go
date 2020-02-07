@@ -31,7 +31,6 @@ type OrdersQuery struct {
 	withTxs      *TxsQuery
 	withItems    *ItemQuery
 	withPayments *PaymentQuery
-	withFKs      bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -90,7 +89,7 @@ func (oq *OrdersQuery) QueryPayments() *PaymentQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(orders.Table, orders.FieldID, oq.sqlQuery()),
 		sqlgraph.To(payment.Table, payment.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, orders.PaymentsTable, orders.PaymentsColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, orders.PaymentsTable, orders.PaymentsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 	return query
@@ -342,7 +341,6 @@ func (oq *OrdersQuery) Select(field string, fields ...string) *OrdersSelect {
 func (oq *OrdersQuery) sqlAll(ctx context.Context) ([]*Orders, error) {
 	var (
 		nodes       = []*Orders{}
-		withFKs     = oq.withFKs
 		_spec       = oq.querySpec()
 		loadedTypes = [3]bool{
 			oq.withTxs != nil,
@@ -350,19 +348,10 @@ func (oq *OrdersQuery) sqlAll(ctx context.Context) ([]*Orders, error) {
 			oq.withPayments != nil,
 		}
 	)
-	if oq.withPayments != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, orders.ForeignKeys...)
-	}
 	_spec.ScanValues = func() []interface{} {
 		node := &Orders{config: oq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
-		if withFKs {
-			values = append(values, node.fkValues()...)
-		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -437,27 +426,30 @@ func (oq *OrdersQuery) sqlAll(ctx context.Context) ([]*Orders, error) {
 	}
 
 	if query := oq.withPayments; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*Orders)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Orders)
 		for i := range nodes {
-			if fk := nodes[i].payment_orders; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(payment.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.Payment(func(s *sql.Selector) {
+			s.Where(sql.InValues(orders.PaymentsColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.orders_payments
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "orders_payments" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "payment_orders" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "orders_payments" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Payments = n
-			}
+			node.Edges.Payments = n
 		}
 	}
 

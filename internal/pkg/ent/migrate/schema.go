@@ -50,27 +50,19 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
-		{Name: "payment_orders", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// OrdersTable holds the schema information for the "orders" table.
 	OrdersTable = &schema.Table{
-		Name:       "orders",
-		Columns:    OrdersColumns,
-		PrimaryKey: []*schema.Column{OrdersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "orders_payments_orders",
-				Columns: []*schema.Column{OrdersColumns[3]},
-
-				RefColumns: []*schema.Column{PaymentsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
+		Name:        "orders",
+		Columns:     OrdersColumns,
+		PrimaryKey:  []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// PaymentsColumns holds the columns for the "payments" table.
 	PaymentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "instrument_payments", Type: field.TypeInt, Nullable: true},
+		{Name: "orders_payments", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// PaymentsTable holds the schema information for the "payments" table.
 	PaymentsTable = &schema.Table{
@@ -83,6 +75,13 @@ var (
 				Columns: []*schema.Column{PaymentsColumns[1]},
 
 				RefColumns: []*schema.Column{PaymentInstrumentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "payments_orders_payments",
+				Columns: []*schema.Column{PaymentsColumns[2]},
+
+				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -163,8 +162,8 @@ var (
 
 func init() {
 	OrderItemsTable.ForeignKeys[0].RefTable = OrdersTable
-	OrdersTable.ForeignKeys[0].RefTable = PaymentsTable
 	PaymentsTable.ForeignKeys[0].RefTable = PaymentInstrumentsTable
+	PaymentsTable.ForeignKeys[1].RefTable = OrdersTable
 	SubscriptionsTable.ForeignKeys[0].RefTable = PlansTable
 	OrderTxsTable.ForeignKeys[0].RefTable = OrdersTable
 }
