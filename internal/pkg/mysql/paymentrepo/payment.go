@@ -57,8 +57,12 @@ func (mysql paymentMySQL) GetPaymentInstrumentByType(ctx context.Context, types 
 }
 
 func (mysql paymentMySQL) Wipe(ctx context.Context) {
-	mysql.client.Instrument.Delete().ExecX(ctx)
+	mysql.client.Txs.Delete().ExecX(ctx)
+	mysql.client.Item.Delete().ExecX(ctx)
 	mysql.client.Payment.Delete().ExecX(ctx)
+	mysql.client.Orders.Delete().ExecX(ctx)
+	mysql.client.Instrument.Delete().ExecX(ctx)
+
 }
 
 func (mysql paymentMySQL) CreatePaymentInstrument(ctx context.Context, types PaymentType) (*ent.Instrument, error) {

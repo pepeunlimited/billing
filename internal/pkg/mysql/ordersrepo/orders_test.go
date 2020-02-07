@@ -9,10 +9,12 @@ import (
 
 func TestOrdersMySQL_CreateOrder(t *testing.T) {
 	ctx := context.TODO()
-	ordersrepo := NewOrdersRepository(ent.NewEntClient())
-	ordersrepo.Wipe(ctx)
 	pay := paymentrepo.NewPaymentRepository(ent.NewEntClient())
 	pay.Wipe(ctx)
+
+	ordersrepo := NewOrdersRepository(ent.NewEntClient())
+	ordersrepo.Wipe(ctx)
+
 
 	userID := int64(1)
 	items := []*ent.Item{
@@ -56,6 +58,19 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 	if payment == nil {
 		t.FailNow()
 	}
+	_, err = ordersrepo.CreateOrderStatus(ctx, order.ID, userID, StatusFromString("REFUNDED"))
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	order, err = ordersrepo.GetOrderByUserID(ctx, order.ID, userID, true, true, true)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if order.Edges.Txs[2].Status != "REFUNDED" {
+		t.FailNow()
+	}
 }
 
 func TestOrdersMySQL_GetOrdersByUserID(t *testing.T) {
@@ -78,7 +93,7 @@ func TestOrdersMySQL_GetOrdersByUserID(t *testing.T) {
 	ordersrepo.CreateOrder(ctx, userID, items)
 	ordersrepo.CreateOrder(ctx, userID, items)
 
-	ordersList, nextPageToken, err := ordersrepo.GetOrdersByUserID(ctx, userID, 0, 0)
+	ordersList, nextPageToken, err := ordersrepo.GetOrdersByUserID(ctx, userID, 0, 0, true, true, true)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

@@ -84,7 +84,7 @@ CREATE TABLE order_txs (
 CREATE TABLE payment_instruments (
      id           TINYINT     NOT NULL AUTO_INCREMENT,
      type         CHAR(12)    UNIQUE NOT NULL,
-     type_i18n_id BIGINT      NULL,                # reserved for the future
+     type_i18n_id BIGINT      NULL,               # reserved for the future
      PRIMARY KEY (id)
 );
 #  --------

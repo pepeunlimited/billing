@@ -28,10 +28,10 @@ message PaymentInstrument {
 
 enum PaymentInstrumentType {
     UNKNOWN      = 0;
-    APPLE_IAP    = 1;
+    APPLE        = 1;
     GIFT_VOUCHER = 2;
     PAYPAL       = 3;
-    GOOGLE_IAP   = 4;
+    GOOGLE       = 4;
 }
 
 message DeletePaymentInstrumentParams {}

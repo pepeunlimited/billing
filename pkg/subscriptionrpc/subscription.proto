@@ -50,13 +50,4 @@ message Subscription {
     int64 plan_id       = 3;
     string start_at     = 4;
     string end_at       = 5;
-    enum Status {
-        UNKNOWN         = 0;
-        PAID            = 1;
-        CANCELED        = 2;
-        FAILED          = 3;
-        REFUNDED        = 4;
-        PENDING         = 5;
-        TRIAL           = 6;
-    }
 }

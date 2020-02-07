@@ -15,10 +15,11 @@ var (
 
 type OrdersRepository interface {
 
+	CreateOrderStatus(ctx context.Context, orderID int, userID int64, status Status)	  (*ent.Orders, error)
 	CreateOrder(ctx context.Context, userID int64, items []*ent.Item) 					  (*ent.Orders, error)
 
-	GetOrderByUserID(ctx context.Context, orderID int, userID int64)					  (*ent.Orders, error)
-	GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32) ([]*ent.Orders, int64, error)
+	GetOrderByUserID(ctx context.Context, orderID int, userID int64, withItems bool, withTXs bool, withPayments bool) (*ent.Orders, error)
+	GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32, withItems bool, withTXs bool, withPayments bool) ([]*ent.Orders, int64, error)
 
 	Wipe(ctx context.Context)
 }
@@ -27,12 +28,39 @@ type ordersMySQL struct {
 	client *ent.Client
 }
 
-func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32) ([]*ent.Orders, int64, error) {
-	order, err := mysql.client.Orders.Query().Where(
+func (mysql ordersMySQL) CreateOrderStatus(ctx context.Context, orderID int, userID int64, status Status) (*ent.Orders, error) {
+	_, err := mysql.GetOrderByUserID(ctx, orderID, userID, false, false, false)
+	if err != nil {
+		return nil, err
+	}
+	_, err = mysql.client.Txs.Create().SetOrdersID(orderID).SetCreatedAt(time.Now().UTC()).SetStatus(status.String()).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return mysql.GetOrderByUserID(ctx, orderID, userID, false, false, false)
+}
+
+func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pageToken int64, pageSize int32, withItems bool, withTXs bool, withPayments bool) ([]*ent.Orders, int64, error) {
+	query := mysql.client.Orders.Query().Where(
 		orders.UserID(userID),
 		orders.IDGT(int(pageToken))).
 		Order(ent.Asc(orders.FieldID)).
-		Limit(int(pageSize)).WithItems().WithPayments().WithItems().All(ctx)
+		Limit(int(pageSize))
+
+	if withItems {
+		query.WithItems()
+	}
+
+	if withPayments {
+		query.WithPayments()
+	}
+
+	if withTXs {
+		query.WithTxs()
+	}
+
+	order, err := query.All(ctx)
+
 	if err != nil {
 		return nil, 0, err
 	}
@@ -45,11 +73,23 @@ func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pa
 func (mysql ordersMySQL) Wipe(ctx context.Context) {
 	mysql.client.Txs.Delete().ExecX(ctx)
 	mysql.client.Item.Delete().ExecX(ctx)
+	mysql.client.Payment.Delete().ExecX(ctx)
 	mysql.client.Orders.Delete().ExecX(ctx)
+	mysql.client.Instrument.Delete().ExecX(ctx)
 }
 
-func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64) (*ent.Orders, error) {
-	order, err := mysql.client.Orders.Query().Where(orders.UserID(userID), orders.ID(orderID)).WithPayments().WithItems().WithTxs().Only(ctx)
+func (mysql ordersMySQL) GetOrderByUserID(ctx context.Context, orderID int, userID int64, withItems bool, withTXs bool, withPayments bool) (*ent.Orders, error) {
+	query := mysql.client.Orders.Query().Where(orders.UserID(userID), orders.ID(orderID))
+	if withItems {
+		query.WithItems()
+	}
+	if withPayments {
+		query.WithPayments()
+	}
+	if withTXs {
+		query.WithTxs()
+	}
+	order, err := query.Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, ErrOrderNotExist
@@ -97,7 +137,7 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 	if err :=  mysql.commit(tx); err != nil {
 		return nil, err
 	}
-	return mysql.GetOrderByUserID(ctx, order.ID, userID)
+	return mysql.GetOrderByUserID(ctx, order.ID, userID, true, true, false)
 }
 
 func NewOrdersRepository(client *ent.Client) OrdersRepository {

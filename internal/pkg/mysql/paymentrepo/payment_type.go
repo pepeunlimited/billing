@@ -10,10 +10,11 @@ const (
 	Google
 	Visa
 	PayPal
+	GiftVoucher
 )
 
 func (types PaymentType) String() string {
-	return [...]string{"UNKNOWN", "APPLE", "GOOGLE", "Visa", "PayPal"}[types-1]
+	return [...]string{"UNKNOWN", "APPLE", "GOOGLE", "VISA", "PAYPAL", "GIFT_VOUCHER"}[types-1]
 }
 
 func PaymentTypeFromString(types string) PaymentType {
@@ -27,6 +28,8 @@ func PaymentTypeFromString(types string) PaymentType {
 		return 4
 	case "paypal":
 		return 5
+	case "gift_voucher":
+		return 6
 	default:
 		return 0
 	}
