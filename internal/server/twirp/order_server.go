@@ -15,12 +15,20 @@ type OrderServer struct {
 	valid  validator.OrderServerValidator
 }
 
-func (server OrderServer) CreateOrder(context.Context, *orderrpc.CreateOrderParams) (*orderrpc.Order, error) {
-	panic("implement me")
+func (server OrderServer) CreateOrder(ctx context.Context, params *orderrpc.CreateOrderParams) (*orderrpc.CreateOrderResponse, error) {
+	err := server.valid.CreateOrder(params)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
-func (server OrderServer) GetOrders(context.Context, *orderrpc.GetOrdersParams) (*orderrpc.GetOrdersResponse, error) {
-	panic("implement me")
+func (server OrderServer) GetOrders(ctx context.Context, params *orderrpc.GetOrdersParams) (*orderrpc.GetOrdersResponse, error) {
+	err := server.valid.GetOrders(params)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (server OrderServer) GetOrder(ctx context.Context, params *orderrpc.GetOrderParams) (*orderrpc.Order, error) {

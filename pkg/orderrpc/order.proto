@@ -10,7 +10,7 @@ import "google/protobuf/wrappers.proto";
 
 service OrderService {
 
-    rpc CreateOrder(CreateOrderParams)      returns (Order);
+    rpc CreateOrder(CreateOrderParams)      returns (CreateOrderResponse);
 
     rpc GetOrders(GetOrdersParams)          returns (GetOrdersResponse);
 
@@ -21,7 +21,16 @@ service OrderService {
     rpc GetOrderItems(GetOrderItemsParams)  returns (GetOrderItemsResponse);
 }
 
-message CreateOrderParams {}
+message CreateOrderParams {
+    repeated OrderItem order_items = 1;
+    int64 user_id                  = 2;
+}
+
+message CreateOrderResponse {
+    Order order             = 1;
+    repeated OrderItem order_items   = 2;
+    OrderTx order_txs       = 3;
+}
 
 message Order {
     int64 id                        = 1;
@@ -36,6 +45,8 @@ message GetOrderParams {
 
 message GetOrdersParams {
     int64 user_id                   = 1;
+    int32 page_size                 = 2;
+    int64 page_token                = 3;
 }
 
 message GetOrdersResponse {

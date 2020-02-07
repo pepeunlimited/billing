@@ -49,3 +49,16 @@ func TestOrderServer_GetOrder(t *testing.T) {
 	}
 	log.Print(order)
 }
+
+func TestOrderServer_GetOrders(t *testing.T) {
+	ctx := context.TODO()
+	server := NewOrderServer(ent.NewEntClient())
+	order, err := server.GetOrders(ctx, &orderrpc.GetOrdersParams{
+		UserId:  1,
+	})
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	log.Print(order)
+}
