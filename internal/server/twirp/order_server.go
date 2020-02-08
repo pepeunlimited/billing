@@ -39,7 +39,15 @@ func (server OrderServer) GetOrders(ctx context.Context, params *orderrpc.GetOrd
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	orders, nextPageToken, err := server.orders.GetOrdersByUserID(ctx, params.UserId, params.PageToken, params.PageSize, false, false, false)
+
+	if err != nil {
+		return nil, twirp.InternalError("orders_query_failed")
+	}
+	return &orderrpc.GetOrdersResponse{
+		Orders: etc.ToOrders(orders),
+		NextPageToken:nextPageToken,
+	}, nil
 }
 
 func (server OrderServer) GetOrder(ctx context.Context, params *orderrpc.GetOrderParams) (*orderrpc.Order, error) {
@@ -61,7 +69,7 @@ func (server OrderServer) GetOrderTxs(ctx context.Context, params *orderrpc.GetO
 	if err != nil {
 		return nil, server.errorz.IsOrdersError(err)
 	}
-	return &orderrpc.GetOrderTxsResponse{OrderTxs: etc.ToOrderTXs(order.Edges.Txs)}, nil
+	return &orderrpc.GetOrderTxsResponse{OrderTxs: etc.ToOrderTXsWithOrderId(order.Edges.Txs, int64(order.ID))}, nil
 }
 
 func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.GetOrderItemsParams) (*orderrpc.GetOrderItemsResponse, error) {
@@ -72,7 +80,7 @@ func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.Ge
 	if err != nil {
 		return nil, server.errorz.IsOrdersError(err)
 	}
-	return &orderrpc.GetOrderItemsResponse{OrderItems: etc.ToOrderItems(order.Edges.Items)}, nil
+	return &orderrpc.GetOrderItemsResponse{OrderItems: etc.ToOrderItemsWithOrderId(order.Edges.Items, int64(order.ID))}, nil
 }
 
 func NewOrderServer(client *ent.Client) OrderServer {

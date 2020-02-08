@@ -15,6 +15,14 @@ func ToOrder(orders *ent.Orders) *orderrpc.Order {
 	}
 }
 
+func ToOrders(orders []*ent.Orders) []*orderrpc.Order {
+	list := make([]*orderrpc.Order, 0)
+	for _, order := range orders {
+		list = append(list, ToOrder(order))
+	}
+	return list
+}
+
 func ToOrderItems(items []*ent.Item) []*orderrpc.OrderItem {
 	return ToOrderItemsWithOrderId(items, 0)
 }

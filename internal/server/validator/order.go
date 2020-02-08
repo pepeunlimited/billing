@@ -44,9 +44,6 @@ func (v OrderServerValidator) GetOrders(params *orderrpc.GetOrdersParams) error 
 	if params.PageSize == 0 {
 		return twirp.RequiredArgumentError("page_size")
 	}
-	if params.PageToken == 0 {
-		return twirp.RequiredArgumentError("page_token")
-	}
 	return nil
 }
 
