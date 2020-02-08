@@ -15,7 +15,6 @@ var (
 )
 
 type PaymentRepository interface {
-
 	CreatePaymentInstrument(ctx context.Context, types PaymentType) (*ent.Instrument, error)
 	CreatePayment(ctx context.Context, orderId int, instrumentId int) (*ent.Payment, error)
 

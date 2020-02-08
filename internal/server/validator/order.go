@@ -54,7 +54,13 @@ func (v OrderServerValidator) CreateOrder(params *orderrpc.CreateOrderParams) er
 	if params.UserId == 0 {
 		return twirp.RequiredArgumentError("user_id")
 	}
+	if params.OrderItems == nil {
+		return twirp.RequiredArgumentError("order_items")
+	}
 	for _, item := range params.OrderItems {
+		if item.Quantity > 255 {
+			return twirp.InvalidArgumentError("quantity", "too_large")
+		}
 		if item.Quantity == 0 {
 			return twirp.RequiredArgumentError("quantity")
 		}

@@ -4,15 +4,17 @@ import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
 	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
+	"github.com/pepeunlimited/billing/internal/server/errorz"
+	"github.com/pepeunlimited/billing/internal/server/etc"
 	"github.com/pepeunlimited/billing/internal/server/validator"
 	"github.com/pepeunlimited/billing/pkg/orderrpc"
 	"github.com/twitchtv/twirp"
-	"log"
 )
 
 type OrderServer struct {
 	orders ordersrepo.OrdersRepository
 	valid  validator.OrderServerValidator
+	errorz errorz.OrderErrorz
 }
 
 func (server OrderServer) CreateOrder(ctx context.Context, params *orderrpc.CreateOrderParams) (*orderrpc.CreateOrderResponse, error) {
@@ -20,7 +22,16 @@ func (server OrderServer) CreateOrder(ctx context.Context, params *orderrpc.Crea
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	items := etc.FromOrderItems(params.OrderItems)
+	order, err := server.orders.CreateOrder(ctx, params.UserId, items)
+	if err != nil {
+		return nil, twirp.NewError(twirp.Aborted, "create_order_failed")
+	}
+	return &orderrpc.CreateOrderResponse{
+		Order:      etc.ToOrder(order),
+		OrderItems: etc.ToOrderItemsWithOrderId(order.Edges.Items, int64(order.ID)),
+		OrderTxs:   etc.ToOrderTXsWithOrderId(order.Edges.Txs, int64(order.ID)),
+	}, nil
 }
 
 func (server OrderServer) GetOrders(ctx context.Context, params *orderrpc.GetOrdersParams) (*orderrpc.GetOrdersResponse, error) {
@@ -37,9 +48,9 @@ func (server OrderServer) GetOrder(ctx context.Context, params *orderrpc.GetOrde
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, false, false, false)
 	if err != nil {
-		return nil, server.isOrderError(err)
+		return nil, server.errorz.IsOrdersError(err)
 	}
-	return toOrder(order), nil
+	return etc.ToOrder(order), nil
 }
 
 func (server OrderServer) GetOrderTxs(ctx context.Context, params *orderrpc.GetOrderTxsParams) (*orderrpc.GetOrderTxsResponse, error) {
@@ -48,10 +59,9 @@ func (server OrderServer) GetOrderTxs(ctx context.Context, params *orderrpc.GetO
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, false, true, false)
 	if err != nil {
-		return nil, server.isOrderError(err)
+		return nil, server.errorz.IsOrdersError(err)
 	}
-
-	return &orderrpc.GetOrderTxsResponse{OrderTxs: toOrderTXs(order.Edges.Txs)}, nil
+	return &orderrpc.GetOrderTxsResponse{OrderTxs: etc.ToOrderTXs(order.Edges.Txs)}, nil
 }
 
 func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.GetOrderItemsParams) (*orderrpc.GetOrderItemsResponse, error) {
@@ -60,22 +70,14 @@ func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.Ge
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, true, false, false)
 	if err != nil {
-		return nil, server.isOrderError(err)
+		return nil, server.errorz.IsOrdersError(err)
 	}
-	return &orderrpc.GetOrderItemsResponse{OrderItems: toOrderItems(order.Edges.Items)}, nil
+	return &orderrpc.GetOrderItemsResponse{OrderItems: etc.ToOrderItems(order.Edges.Items)}, nil
 }
 
 func NewOrderServer(client *ent.Client) OrderServer {
 	return OrderServer{
 		orders:ordersrepo.NewOrdersRepository(client),
+		errorz: errorz.NewOrderErrorz(),
 	}
-}
-
-func (OrderServer) isOrderError(err error) error {
-	switch err {
-	case ordersrepo.ErrOrderNotExist:
-		return twirp.NotFoundError("order_not_found")
-	}
-	log.Print("order-server: unknown database issue: "+err.Error())
-	return twirp.InternalError(err.Error())
 }

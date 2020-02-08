@@ -46,21 +46,16 @@ func (mysql ordersMySQL) GetOrdersByUserID(ctx context.Context, userID int64, pa
 		orders.IDGT(int(pageToken))).
 		Order(ent.Asc(orders.FieldID)).
 		Limit(int(pageSize))
-
 	if withItems {
 		query.WithItems()
 	}
-
 	if withPayments {
 		query.WithPayments()
 	}
-
 	if withTXs {
 		query.WithTxs()
 	}
-
 	order, err := query.All(ctx)
-
 	if err != nil {
 		return nil, 0, err
 	}
