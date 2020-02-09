@@ -5,6 +5,8 @@ import (
 	"errors"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/instrument"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
+	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
 	"log"
 	"time"
 )
@@ -12,6 +14,7 @@ import (
 var (
 	ErrPaymentInstrumentExist = errors.New("payments: instrument exist")
 	ErrPaymentInstrumentNotExist = errors.New("payments: instrument not exist")
+	ErrPaymentNotExist			= errors.New("payments: not exist")
 )
 
 type PaymentRepository interface {
@@ -22,11 +25,59 @@ type PaymentRepository interface {
 	GetPaymentInstrumentByType(ctx context.Context, types PaymentType) (*ent.Instrument, error)
 	GetPaymentInstrumentByID(ctx context.Context, id int) (*ent.Instrument, error)
 
+	GetPaymentByOrderID(ctx context.Context, orderId int)  					(*ent.Payment, error)
+	GetPaymentByID(ctx context.Context, id int)  	(*ent.Payment, error)
+
+	GetPayments(ctx context.Context, userId int64, pageToken int64, pageSize int32) ([]*ent.Payment, int64, error)
+
 	Wipe(ctx context.Context)
 }
 
 type paymentMySQL struct {
 	client *ent.Client
+}
+
+func (mysql paymentMySQL) GetPaymentByID(ctx context.Context, id int) (*ent.Payment, error) {
+	payment, err := mysql.client.Payment.Query().WithOrders().WithInstruments().Where(payment.ID(id)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, ErrPaymentNotExist
+		}
+		return nil, err
+	}
+	return payment, nil
+}
+
+func (mysql paymentMySQL) GetPayments(ctx context.Context, userId int64, pageToken int64, pageSize int32) ([]*ent.Payment, int64, error) {
+	payment, err := mysql.client.Payment.Query().Where(
+		payment.HasOrdersWith(orders.UserID(userId)),
+		payment.IDGT(int(pageToken))).
+		Order(ent.Asc(payment.FieldID)).
+		Limit(int(pageSize)).
+		WithInstruments().
+		WithOrders().
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(payment) == 0 {
+		return []*ent.Payment{}, pageToken, nil
+	}
+	return payment, int64(payment[len(payment) - 1].ID), nil
+}
+
+func (mysql paymentMySQL) GetPaymentByOrderID(ctx context.Context, orderId int) (*ent.Payment, error) {
+	payment, err := mysql.client.Payment.Query().Where(
+		payment.And(payment.HasOrdersWith(orders.ID(orderId)),
+		)).WithOrders().WithInstruments().Only(ctx)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, err
+		}
+		return nil, err
+	}
+	return payment, nil
 }
 
 func (mysql paymentMySQL) GetPaymentInstrumentByID(ctx context.Context, id int) (*ent.Instrument, error) {
@@ -61,7 +112,6 @@ func (mysql paymentMySQL) Wipe(ctx context.Context) {
 	mysql.client.Payment.Delete().ExecX(ctx)
 	mysql.client.Orders.Delete().ExecX(ctx)
 	mysql.client.Instrument.Delete().ExecX(ctx)
-
 }
 
 func (mysql paymentMySQL) CreatePaymentInstrument(ctx context.Context, types PaymentType) (*ent.Instrument, error) {
@@ -83,7 +133,7 @@ func (mysql paymentMySQL) CreatePayment(ctx context.Context, orderId int, instru
 	if err != nil {
 		return nil, err
 	}
-	pay, err := tx.Payment.Create().SetOrdersID(orderId).SetInstrumentsID(instrumentId).Save(ctx)
+	_, err = tx.Payment.Create().SetOrdersID(orderId).SetInstrumentsID(instrumentId).Save(ctx)
 	if err != nil {
 		mysql.rollback(tx)
 		return nil, err
@@ -96,8 +146,10 @@ func (mysql paymentMySQL) CreatePayment(ctx context.Context, orderId int, instru
 	if err := mysql.commit(tx); err != nil {
 		return nil, err
 	}
-	return pay, nil
+	return mysql.GetPaymentByOrderID(ctx, orderId)
 }
+
+
 
 func NewPaymentRepository(client *ent.Client) PaymentRepository {
 	return paymentMySQL{client:client}

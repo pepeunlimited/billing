@@ -2,8 +2,8 @@ package etc
 
 import (
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
 	"github.com/pepeunlimited/billing/pkg/orderrpc"
+	"github.com/pepeunlimited/billing/pkg/paymentrpc"
 	"time"
 )
 
@@ -66,7 +66,39 @@ func ToOrderTX(orderTX *ent.Txs, orderId int64) *orderrpc.OrderTx {
 	return &orderrpc.OrderTx{
 		Id:       int64(orderTX.ID),
 		OrderId:  orderId,
-		Status:   orderrpc.OrderTx_Status(ordersrepo.StatusFromString(orderTX.Status)),
+		Status:   orderTX.Status,
 		CreatedAt: orderTX.CreatedAt.Format(time.RFC3339),
 	}
+}
+
+func ToPaymentInstrument(instrument *ent.Instrument) *paymentrpc.PaymentInstrument {
+	return &paymentrpc.PaymentInstrument{
+		Id:   int64(instrument.ID),
+		Type: instrument.Type,
+		TypeI18NId: 0,
+	}
+}
+
+func ToPaymentInstruments(instruments []*ent.Instrument) []*paymentrpc.PaymentInstrument {
+	list := make([]*paymentrpc.PaymentInstrument, 0)
+	for _, instrument := range instruments {
+		list = append(list, ToPaymentInstrument(instrument))
+	}
+	return list
+}
+
+func ToPayment(payment *ent.Payment) *paymentrpc.Payment {
+	return &paymentrpc.Payment{
+		Id:					int64(payment.ID),
+		PaymentInstrument: ToPaymentInstrument(payment.Edges.Instruments),
+		OrderId:           int64(payment.Edges.Orders.ID),
+	}
+}
+
+func ToPayments(payments []*ent.Payment) []*paymentrpc.Payment {
+	list := make([]*paymentrpc.Payment, 0)
+	for _, payment := range payments {
+		list = append(list, ToPayment(payment))
+	}
+	return list
 }

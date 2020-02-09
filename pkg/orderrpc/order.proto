@@ -63,16 +63,7 @@ message OrderTx {
     int64 id                        = 1;
     int64 order_id                  = 2;
     string created_at               = 3;
-    enum Status {
-        UNKNOWN         = 0;
-        PAID            = 1;
-        CANCELED        = 2;
-        FAILED          = 3;
-        REFUNDED        = 4;
-        PENDING         = 5;
-        CREATED         = 6;
-    }
-    Status status                   = 4;
+    string status                   = 4;
 }
 
 message GetOrderTxsResponse {

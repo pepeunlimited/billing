@@ -71,6 +71,18 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 	if order.Edges.Txs[2].Status != "REFUNDED" {
 		t.FailNow()
 	}
+
+	payments, paymentNextToken, err := pay.GetPayments(ctx, userID, 0, 20)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	if paymentNextToken == 0 {
+		t.FailNow()
+	}
+	if len(payments) != 1 {
+		t.FailNow()
+	}
 }
 
 func TestOrdersMySQL_GetOrdersByUserID(t *testing.T) {

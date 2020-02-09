@@ -14,7 +14,7 @@ import (
 type OrderServer struct {
 	orders ordersrepo.OrdersRepository
 	valid  validator.OrderServerValidator
-	errorz errorz.OrderErrorz
+	ordererr errorz.OrderErrorz
 }
 
 func (server OrderServer) CreateOrder(ctx context.Context, params *orderrpc.CreateOrderParams) (*orderrpc.CreateOrderResponse, error) {
@@ -40,9 +40,8 @@ func (server OrderServer) GetOrders(ctx context.Context, params *orderrpc.GetOrd
 		return nil, err
 	}
 	orders, nextPageToken, err := server.orders.GetOrdersByUserID(ctx, params.UserId, params.PageToken, params.PageSize, false, false, false)
-
 	if err != nil {
-		return nil, twirp.InternalError("orders_query_failed")
+		return nil, server.ordererr.IsOrdersError(err)
 	}
 	return &orderrpc.GetOrdersResponse{
 		Orders: etc.ToOrders(orders),
@@ -56,7 +55,7 @@ func (server OrderServer) GetOrder(ctx context.Context, params *orderrpc.GetOrde
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, false, false, false)
 	if err != nil {
-		return nil, server.errorz.IsOrdersError(err)
+		return nil, server.ordererr.IsOrdersError(err)
 	}
 	return etc.ToOrder(order), nil
 }
@@ -67,7 +66,7 @@ func (server OrderServer) GetOrderTxs(ctx context.Context, params *orderrpc.GetO
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, false, true, false)
 	if err != nil {
-		return nil, server.errorz.IsOrdersError(err)
+		return nil, server.ordererr.IsOrdersError(err)
 	}
 	return &orderrpc.GetOrderTxsResponse{OrderTxs: etc.ToOrderTXsWithOrderId(order.Edges.Txs, int64(order.ID))}, nil
 }
@@ -78,7 +77,7 @@ func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.Ge
 	}
 	order, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, true, false, false)
 	if err != nil {
-		return nil, server.errorz.IsOrdersError(err)
+		return nil, server.ordererr.IsOrdersError(err)
 	}
 	return &orderrpc.GetOrderItemsResponse{OrderItems: etc.ToOrderItemsWithOrderId(order.Edges.Items, int64(order.ID))}, nil
 }
@@ -86,6 +85,6 @@ func (server OrderServer) GetOrderItems(ctx context.Context, params *orderrpc.Ge
 func NewOrderServer(client *ent.Client) OrderServer {
 	return OrderServer{
 		orders:ordersrepo.NewOrdersRepository(client),
-		errorz: errorz.NewOrderErrorz(),
+		ordererr: errorz.NewOrderErrorz(),
 	}
 }

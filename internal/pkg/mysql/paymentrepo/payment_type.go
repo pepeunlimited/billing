@@ -23,7 +23,7 @@ func PaymentTypeFromString(types string) PaymentType {
 	case "apple":
 		return 2
 	case "google":
-		return 4
+		return 3
 	case "visa":
 		return 4
 	case "paypal":
@@ -31,6 +31,6 @@ func PaymentTypeFromString(types string) PaymentType {
 	case "gift_voucher":
 		return 6
 	default:
-		return 0
+		return 1
 	}
 }

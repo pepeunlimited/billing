@@ -34,6 +34,6 @@ func StatusFromString(types string) Status {
 	case "created":
 		return 7
 	default:
-		return 0
+		return 1
 	}
 }

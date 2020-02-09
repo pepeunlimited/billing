@@ -3,7 +3,6 @@ package twirp
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
 	"github.com/pepeunlimited/billing/pkg/orderrpc"
 	"testing"
 )
@@ -29,7 +28,7 @@ func TestOrderServer_GetOrderTxs(t *testing.T) {
 	if int64(fromDB.Edges.Txs[0].ID) != txs.OrderTxs[0].Id {
 		t.FailNow()
 	}
-	if ordersrepo.StatusFromString(fromDB.Edges.Txs[0].Status) != ordersrepo.Status(txs.OrderTxs[0].Status) {
+	if fromDB.Edges.Txs[0].Status != txs.OrderTxs[0].Status {
 		t.FailNow()
 	}
 }
@@ -84,6 +83,7 @@ func TestOrderServer_GetOrder(t *testing.T) {
 	if createOrder.Order.Id != order.Id {
 		t.FailNow()
 	}
+
 }
 
 func TestOrderServer_GetOrders(t *testing.T) {
@@ -105,6 +105,9 @@ func TestOrderServer_GetOrders(t *testing.T) {
 		t.FailNow()
 	}
 	if len(order.Orders) != 1 {
+		t.FailNow()
+	}
+	if order.NextPageToken == 0 {
 		t.FailNow()
 	}
 }
