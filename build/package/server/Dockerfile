@@ -4,7 +4,7 @@
 FROM golang:1.13.4-alpine as build
 
 # Set the Current Working Directory inside the container
-WORKDIR $GOPATH/src/github.com/pepeunlimited/rpc-starter-kit
+WORKDIR $GOPATH/src/github.com/pepeunlimited/billing
 
 # Copy everything from the current directory to the PWD(Present Working Directory) inside the container
 COPY . .
