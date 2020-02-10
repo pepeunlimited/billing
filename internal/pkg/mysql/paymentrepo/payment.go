@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	ErrPaymentInstrumentExist = errors.New("payments: instrument exist")
-	ErrPaymentInstrumentNotExist = errors.New("payments: instrument not exist")
-	ErrPaymentNotExist			= errors.New("payments: not exist")
+	ErrPaymentInstrumentExist 		= errors.New("payments: instrument exist")
+	ErrPaymentInstrumentNotExist 	= errors.New("payments: instrument not exist")
+	ErrPaymentNotExist				= errors.New("payments: not exist")
+	ErrPaymentExist					= errors.New("payments: exist")
 )
 
 type PaymentRepository interface {
@@ -136,6 +137,9 @@ func (mysql paymentMySQL) CreatePayment(ctx context.Context, orderId int, instru
 	_, err = tx.Payment.Create().SetOrdersID(orderId).SetInstrumentsID(instrumentId).Save(ctx)
 	if err != nil {
 		mysql.rollback(tx)
+		if ent.IsConstraintError(err) {
+			return nil, ErrPaymentExist
+		}
 		return nil, err
 	}
 	_, err = tx.Txs.Create().SetOrdersID(orderId).SetStatus("PAID").SetCreatedAt(time.Now().UTC()).Save(ctx)
@@ -148,8 +152,6 @@ func (mysql paymentMySQL) CreatePayment(ctx context.Context, orderId int, instru
 	}
 	return mysql.GetPaymentByOrderID(ctx, orderId)
 }
-
-
 
 func NewPaymentRepository(client *ent.Client) PaymentRepository {
 	return paymentMySQL{client:client}

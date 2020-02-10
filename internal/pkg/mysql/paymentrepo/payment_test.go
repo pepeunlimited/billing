@@ -3,6 +3,7 @@ package paymentrepo
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
+	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
 	"testing"
 )
 
@@ -52,6 +53,26 @@ func TestPaymentMySQL_CreatePaymentInstrument(t *testing.T) {
 		t.FailNow()
 	}
 	if len(instruments) != 1 {
+		t.FailNow()
+	}
+}
+
+
+func TestPaymentMySQL_CreatePaymentDuplicate(t *testing.T) {
+	ctx := context.TODO()
+	client := ent.NewEntClient()
+	prepo := NewPaymentRepository(client)
+	prepo.Wipe(ctx)
+	orepo := ordersrepo.NewOrdersRepository(client)
+	userId := int64(1)
+	order,_ := orepo.CreateOrder(ctx, userId, []*ent.Item{&ent.Item{PriceID: 100, Quantity: 1}})
+	instrument,_ := prepo.CreatePaymentInstrument(ctx, Google)
+	prepo.CreatePayment(ctx, order.ID, instrument.ID)
+	_, err := prepo.CreatePayment(ctx, order.ID, instrument.ID)
+	if err == nil {
+		t.FailNow()
+	}
+	if err != ErrPaymentExist {
 		t.FailNow()
 	}
 }

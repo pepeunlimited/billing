@@ -16,6 +16,8 @@ func (PaymentErrorz) IsPaymentsError(err error) error {
 		return twirp.NewError(twirp.AlreadyExists, "payment_instrument")
 	case paymentrepo.ErrPaymentNotExist:
 		return twirp.NotFoundError("payment_not_found")
+	case paymentrepo.ErrPaymentExist:
+		return twirp.NewError(twirp.AlreadyExists, "payment")
 	}
 	log.Print("payment-server: unknown database issue: "+err.Error())
 	return twirp.InternalError(err.Error())
