@@ -8,7 +8,6 @@ import (
 	"github.com/pepeunlimited/billing/internal/server/etc"
 	"github.com/pepeunlimited/billing/internal/server/validator"
 	"github.com/pepeunlimited/billing/pkg/orderrpc"
-	"github.com/twitchtv/twirp"
 )
 
 type OrderServer struct {
@@ -25,7 +24,7 @@ func (server OrderServer) CreateOrder(ctx context.Context, params *orderrpc.Crea
 	items := etc.FromOrderItems(params.OrderItems)
 	order, err := server.orders.CreateOrder(ctx, params.UserId, items)
 	if err != nil {
-		return nil, twirp.NewError(twirp.Aborted, "create_order_failed")
+		return nil, server.ordererr.IsOrdersError(err)
 	}
 	return &orderrpc.CreateOrderResponse{
 		Order:      etc.ToOrder(order),
