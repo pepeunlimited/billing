@@ -63,7 +63,20 @@ $ curl -H "Content-Type: application/json" \
 -X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPayments" \
 -d '{"user_id":1, "page_size": 20, "page_token": 0}'
 ```
-
-rpc GetPayments(GetPaymentsParams)                         returns (GetPaymentsResponse);
-rpc GetPayment(GetPaymentParams)                           returns (Payment);
-rpc CreatePaymentInstrument(CreatePaymentInstrumentParams) returns (PaymentInstrument);
+##### GetPayment
+```
+$ curl -H "Content-Type: application/json" \
+-X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPayment" \
+-d '{"user_id":1, "payment_id":1}'
+```
+```
+$ curl -H "Content-Type: application/json" \
+-X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPayment" \
+-d '{"user_id":1, "order_id":1}'
+```
+##### CreatePaymentInstrument
+```
+$ curl -H "Content-Type: application/json" \
+-X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/CreatePaymentInstrument" \
+-d '{"type":"Google"}'
+```
