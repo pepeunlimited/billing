@@ -73,7 +73,7 @@ func ToOrderTX(orderTX *ent.Txs, orderId int64) *orderrpc.OrderTx {
 
 func ToPaymentInstrument(instrument *ent.Instrument) *paymentrpc.PaymentInstrument {
 	return &paymentrpc.PaymentInstrument{
-		Id:   int64(instrument.ID),
+		Id:   uint32(instrument.ID),
 		Type: instrument.Type,
 		TypeI18NId: 0,
 	}
@@ -90,7 +90,7 @@ func ToPaymentInstruments(instruments []*ent.Instrument) []*paymentrpc.PaymentIn
 func ToPayment(payment *ent.Payment) *paymentrpc.Payment {
 	return &paymentrpc.Payment{
 		Id:					 int64(payment.ID),
-		PaymentInstrumentId: int64(payment.Edges.Instruments.ID),
+		PaymentInstrumentId: uint32(payment.Edges.Instruments.ID),
 		OrderId:           	 int64(payment.Edges.Orders.ID),
 	}
 }

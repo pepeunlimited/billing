@@ -24,13 +24,13 @@ service PaymentService {
 }
 
 message CreatePaymentParams {
-    int64 order_id              = 1;
-    int64 payment_instrument_id = 2;
-    int64 user_id               = 3;
+    int64 order_id               = 1;
+    uint32 payment_instrument_id = 2;
+    int64 user_id                = 3;
 }
 
 message Payment {
-    int64 payment_instrument_id          = 1;
+    uint32 payment_instrument_id         = 1;
     int64 order_id                       = 2;
     int64 id                             = 3;
 }
@@ -57,7 +57,7 @@ message CreatePaymentInstrumentParams {
 }
 
 message PaymentInstrument {
-    int64 id                          = 1;
+    uint32 id                         = 1;
     string type                       = 2;
     int64 type_i18n_id                = 3;
 }
