@@ -8,7 +8,7 @@ $ brew install jq > curl ... | jq
 ```
 $ curl -H "Content-Type: application/json" \
   -X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.OrderService/GetOrders" \
-  -d '{"user_id": 1, "order_id": 2}'
+  -d '{"user_id": 1, "page_size": 20, "page_token": 0}'
 ```
 ##### GetOrder
 ```
@@ -56,6 +56,12 @@ curl -H "Content-Type: application/json" \
 $ curl -H "Content-Type: application/json" \
 -X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPaymentInstruments" \
 -d '{}'
+```
+##### GetPayments
+```
+$ curl -H "Content-Type: application/json" \
+-X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPayments" \
+-d '{"user_id":1, "page_size": 20, "page_token": 0}'
 ```
 
 rpc GetPayments(GetPaymentsParams)                         returns (GetPaymentsResponse);

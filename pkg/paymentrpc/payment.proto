@@ -30,7 +30,7 @@ message CreatePaymentParams {
 }
 
 message Payment {
-    PaymentInstrument payment_instrument = 1;
+    int64 payment_instrument_id          = 1;
     int64 order_id                       = 2;
     int64 id                             = 3;
 }

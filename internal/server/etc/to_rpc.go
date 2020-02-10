@@ -89,9 +89,9 @@ func ToPaymentInstruments(instruments []*ent.Instrument) []*paymentrpc.PaymentIn
 
 func ToPayment(payment *ent.Payment) *paymentrpc.Payment {
 	return &paymentrpc.Payment{
-		Id:					int64(payment.ID),
-		PaymentInstrument: ToPaymentInstrument(payment.Edges.Instruments),
-		OrderId:           int64(payment.Edges.Orders.ID),
+		Id:					 int64(payment.ID),
+		PaymentInstrumentId: int64(payment.Edges.Instruments.ID),
+		OrderId:           	 int64(payment.Edges.Orders.ID),
 	}
 }
 
