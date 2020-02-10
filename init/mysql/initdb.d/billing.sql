@@ -2,32 +2,6 @@ CREATE DATABASE IF NOT EXISTS billing CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 
 USE billing;
 
-# CREATE TABLE product (
-#      id BIGINT NOT NULL AUTO_INCREMENT,
-#      name_i18n BIGINT NOT NULL,
-#      short_i18n BIGINT NOT NULL,
-#      long_i18n BIGINT NOT NULL,
-#      sku VARCHAR(30) UNIQUE NOT NULL,
-#      created_at INT UNSIGNED NOT NULL,
-#      type VARCHAR(200) NOT NULL,
-#      FOREIGN KEY (name_i18n) REFERENCES i18n (id),
-#      FOREIGN KEY (short_i18n) REFERENCES i18n (id),
-#      FOREIGN KEY (long_i18n) REFERENCES i18n (id),
-#      PRIMARY KEY (id)
-# );
-# CREATE TABLE product_price (
-#    id BIGINT NOT NULL AUTO_INCREMENT,
-#    currency CHAR(3) NOT NULL,
-#    start_at INT UNSIGNED NOT NULL,
-#    end_at INT UNSIGNED NOT NULL,
-#    price DECIMAL(13,4) DEFAULT 0.0000,
-#    discount DECIMAL(13,4) DEFAULT 0.0000,
-#    product_id BIGINT NOT NULL,
-#    FOREIGN KEY (product_id) REFERENCES product (id),
-#    FOREIGN KEY (currency) REFERENCES currency (code),
-#    PRIMARY KEY (id)
-# );
-
 #  -------------
 # |subscriptions|
 #  -------------
