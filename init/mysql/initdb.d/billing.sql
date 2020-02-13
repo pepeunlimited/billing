@@ -2,28 +2,6 @@ CREATE DATABASE IF NOT EXISTS billing CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 
 USE billing;
 
-#  -------------
-# |subscriptions|
-#  -------------
-CREATE TABLE plans (
-    id            BIGINT NOT NULL AUTO_INCREMENT,
-    title_i18n_id BIGINT NOT NULL,
-    price_id      BIGINT UNIQUE NOT NULL,
-    start_at      DATETIME(3) NOT NULL,
-    end_at        DATETIME(3) NOT NULL,
-    length        TINYINT UNSIGNED NOT NULL,
-    unit          CHAR(7) NOT NULL, #days, weeks, months, years
-    PRIMARY KEY (id)
-);
-CREATE TABLE subscriptions (
-    id                    BIGINT      NOT NULL AUTO_INCREMENT,
-    user_id               BIGINT      NOT NULL,
-    plan_subscriptions    BIGINT,
-    start_at              DATETIME(3) NOT NULL,
-    end_at                DATETIME(3) NOT NULL,
-    FOREIGN KEY (plan_subscriptions) REFERENCES plans (id),
-    PRIMARY KEY (id)
-);
 #  ------
 # |orders|
 #  ------
