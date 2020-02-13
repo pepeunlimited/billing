@@ -12,27 +12,23 @@ import (
 
 // ID filters vertices based on their identifier.
 func ID(id int) predicate.Txs {
-	return predicate.Txs(
-		func(s *sql.Selector) {
-			s.Where(sql.EQ(s.C(FieldID), id))
-		},
-	)
+	return predicate.Txs(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldID), id))
+	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDIn applies the In predicate on the ID field.
@@ -49,8 +45,7 @@ func IDIn(ids ...int) predicate.Txs {
 			v[i] = ids[i]
 		}
 		s.Where(sql.In(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
@@ -67,72 +62,63 @@ func IDNotIn(ids ...int) predicate.Txs {
 			v[i] = ids[i]
 		}
 		s.Where(sql.NotIn(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
 func StatusNEQ(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusIn applies the In predicate on the "status" field.
@@ -149,8 +135,7 @@ func StatusIn(vs ...string) predicate.Txs {
 			return
 		}
 		s.Where(sql.In(s.C(FieldStatus), v...))
-	},
-	)
+	})
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
@@ -167,96 +152,84 @@ func StatusNotIn(vs ...string) predicate.Txs {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
-	},
-	)
+	})
 }
 
 // StatusGT applies the GT predicate on the "status" field.
 func StatusGT(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusGTE applies the GTE predicate on the "status" field.
 func StatusGTE(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusLT applies the LT predicate on the "status" field.
 func StatusLT(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusLTE applies the LTE predicate on the "status" field.
 func StatusLTE(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusContains applies the Contains predicate on the "status" field.
 func StatusContains(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusHasPrefix applies the HasPrefix predicate on the "status" field.
 func StatusHasPrefix(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusHasSuffix applies the HasSuffix predicate on the "status" field.
 func StatusHasSuffix(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusEqualFold applies the EqualFold predicate on the "status" field.
 func StatusEqualFold(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldStatus), v))
-	},
-	)
+	})
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
@@ -273,8 +246,7 @@ func CreatedAtIn(vs ...time.Time) predicate.Txs {
 			return
 		}
 		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	},
-	)
+	})
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
@@ -291,40 +263,35 @@ func CreatedAtNotIn(vs ...time.Time) predicate.Txs {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	},
-	)
+	})
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.Txs {
 	return predicate.Txs(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	},
-	)
+	})
 }
 
 // HasOrders applies the HasEdge predicate on the "orders" edge.
@@ -336,8 +303,7 @@ func HasOrders() predicate.Txs {
 			sqlgraph.Edge(sqlgraph.M2O, true, OrdersTable, OrdersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
-	},
-	)
+	})
 }
 
 // HasOrdersWith applies the HasEdge predicate on the "orders" edge with a given conditions (other predicates).
@@ -353,44 +319,37 @@ func HasOrdersWith(preds ...predicate.Orders) predicate.Txs {
 				p(s)
 			}
 		})
-	},
-	)
+	})
 }
 
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Txs) predicate.Txs {
-	return predicate.Txs(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for _, p := range predicates {
-				p(s1)
-			}
-			s.Where(s1.P())
-		},
-	)
+	return predicate.Txs(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for _, p := range predicates {
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Or groups list of predicates with the OR operator between them.
 func Or(predicates ...predicate.Txs) predicate.Txs {
-	return predicate.Txs(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for i, p := range predicates {
-				if i > 0 {
-					s1.Or()
-				}
-				p(s1)
+	return predicate.Txs(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for i, p := range predicates {
+			if i > 0 {
+				s1.Or()
 			}
-			s.Where(s1.P())
-		},
-	)
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Txs) predicate.Txs {
-	return predicate.Txs(
-		func(s *sql.Selector) {
-			p(s.Not())
-		},
-	)
+	return predicate.Txs(func(s *sql.Selector) {
+		p(s.Not())
+	})
 }

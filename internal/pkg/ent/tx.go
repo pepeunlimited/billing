@@ -20,10 +20,6 @@ type Tx struct {
 	Orders *OrdersClient
 	// Payment is the client for interacting with the Payment builders.
 	Payment *PaymentClient
-	// Plan is the client for interacting with the Plan builders.
-	Plan *PlanClient
-	// Subscription is the client for interacting with the Subscription builders.
-	Subscription *SubscriptionClient
 	// Txs is the client for interacting with the Txs builders.
 	Txs *TxsClient
 }
@@ -41,15 +37,13 @@ func (tx *Tx) Rollback() error {
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
 	return &Client{
-		config:       tx.config,
-		Schema:       migrate.NewSchema(tx.driver),
-		Instrument:   NewInstrumentClient(tx.config),
-		Item:         NewItemClient(tx.config),
-		Orders:       NewOrdersClient(tx.config),
-		Payment:      NewPaymentClient(tx.config),
-		Plan:         NewPlanClient(tx.config),
-		Subscription: NewSubscriptionClient(tx.config),
-		Txs:          NewTxsClient(tx.config),
+		config:     tx.config,
+		Schema:     migrate.NewSchema(tx.driver),
+		Instrument: NewInstrumentClient(tx.config),
+		Item:       NewItemClient(tx.config),
+		Orders:     NewOrdersClient(tx.config),
+		Payment:    NewPaymentClient(tx.config),
+		Txs:        NewTxsClient(tx.config),
 	}
 }
 

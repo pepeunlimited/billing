@@ -13,8 +13,6 @@ import (
 	"github.com/pepeunlimited/billing/internal/pkg/ent/item"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/orders"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/payment"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/plan"
-	"github.com/pepeunlimited/billing/internal/pkg/ent/subscription"
 	"github.com/pepeunlimited/billing/internal/pkg/ent/txs"
 
 	"github.com/facebookincubator/ent/dialect"
@@ -35,10 +33,6 @@ type Client struct {
 	Orders *OrdersClient
 	// Payment is the client for interacting with the Payment builders.
 	Payment *PaymentClient
-	// Plan is the client for interacting with the Plan builders.
-	Plan *PlanClient
-	// Subscription is the client for interacting with the Subscription builders.
-	Subscription *SubscriptionClient
 	// Txs is the client for interacting with the Txs builders.
 	Txs *TxsClient
 }
@@ -48,15 +42,13 @@ func NewClient(opts ...Option) *Client {
 	c := config{log: log.Println}
 	c.options(opts...)
 	return &Client{
-		config:       c,
-		Schema:       migrate.NewSchema(c.driver),
-		Instrument:   NewInstrumentClient(c),
-		Item:         NewItemClient(c),
-		Orders:       NewOrdersClient(c),
-		Payment:      NewPaymentClient(c),
-		Plan:         NewPlanClient(c),
-		Subscription: NewSubscriptionClient(c),
-		Txs:          NewTxsClient(c),
+		config:     c,
+		Schema:     migrate.NewSchema(c.driver),
+		Instrument: NewInstrumentClient(c),
+		Item:       NewItemClient(c),
+		Orders:     NewOrdersClient(c),
+		Payment:    NewPaymentClient(c),
+		Txs:        NewTxsClient(c),
 	}
 }
 
@@ -87,14 +79,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
-		config:       cfg,
-		Instrument:   NewInstrumentClient(cfg),
-		Item:         NewItemClient(cfg),
-		Orders:       NewOrdersClient(cfg),
-		Payment:      NewPaymentClient(cfg),
-		Plan:         NewPlanClient(cfg),
-		Subscription: NewSubscriptionClient(cfg),
-		Txs:          NewTxsClient(cfg),
+		config:     cfg,
+		Instrument: NewInstrumentClient(cfg),
+		Item:       NewItemClient(cfg),
+		Orders:     NewOrdersClient(cfg),
+		Payment:    NewPaymentClient(cfg),
+		Txs:        NewTxsClient(cfg),
 	}, nil
 }
 
@@ -111,15 +101,13 @@ func (c *Client) Debug() *Client {
 	}
 	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true}
 	return &Client{
-		config:       cfg,
-		Schema:       migrate.NewSchema(cfg.driver),
-		Instrument:   NewInstrumentClient(cfg),
-		Item:         NewItemClient(cfg),
-		Orders:       NewOrdersClient(cfg),
-		Payment:      NewPaymentClient(cfg),
-		Plan:         NewPlanClient(cfg),
-		Subscription: NewSubscriptionClient(cfg),
-		Txs:          NewTxsClient(cfg),
+		config:     cfg,
+		Schema:     migrate.NewSchema(cfg.driver),
+		Instrument: NewInstrumentClient(cfg),
+		Item:       NewItemClient(cfg),
+		Orders:     NewOrdersClient(cfg),
+		Payment:    NewPaymentClient(cfg),
+		Txs:        NewTxsClient(cfg),
 	}
 }
 
@@ -478,162 +466,6 @@ func (c *PaymentClient) QueryInstruments(pa *Payment) *InstrumentQuery {
 		sqlgraph.Edge(sqlgraph.M2O, true, payment.InstrumentsTable, payment.InstrumentsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(pa.driver.Dialect(), step)
-
-	return query
-}
-
-// PlanClient is a client for the Plan schema.
-type PlanClient struct {
-	config
-}
-
-// NewPlanClient returns a client for the Plan from the given config.
-func NewPlanClient(c config) *PlanClient {
-	return &PlanClient{config: c}
-}
-
-// Create returns a create builder for Plan.
-func (c *PlanClient) Create() *PlanCreate {
-	return &PlanCreate{config: c.config}
-}
-
-// Update returns an update builder for Plan.
-func (c *PlanClient) Update() *PlanUpdate {
-	return &PlanUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PlanClient) UpdateOne(pl *Plan) *PlanUpdateOne {
-	return c.UpdateOneID(pl.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PlanClient) UpdateOneID(id int) *PlanUpdateOne {
-	return &PlanUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for Plan.
-func (c *PlanClient) Delete() *PlanDelete {
-	return &PlanDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *PlanClient) DeleteOne(pl *Plan) *PlanDeleteOne {
-	return c.DeleteOneID(pl.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *PlanClient) DeleteOneID(id int) *PlanDeleteOne {
-	return &PlanDeleteOne{c.Delete().Where(plan.ID(id))}
-}
-
-// Create returns a query builder for Plan.
-func (c *PlanClient) Query() *PlanQuery {
-	return &PlanQuery{config: c.config}
-}
-
-// Get returns a Plan entity by its id.
-func (c *PlanClient) Get(ctx context.Context, id int) (*Plan, error) {
-	return c.Query().Where(plan.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PlanClient) GetX(ctx context.Context, id int) *Plan {
-	pl, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return pl
-}
-
-// QuerySubscriptions queries the subscriptions edge of a Plan.
-func (c *PlanClient) QuerySubscriptions(pl *Plan) *SubscriptionQuery {
-	query := &SubscriptionQuery{config: c.config}
-	id := pl.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(plan.Table, plan.FieldID, id),
-		sqlgraph.To(subscription.Table, subscription.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, plan.SubscriptionsTable, plan.SubscriptionsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(pl.driver.Dialect(), step)
-
-	return query
-}
-
-// SubscriptionClient is a client for the Subscription schema.
-type SubscriptionClient struct {
-	config
-}
-
-// NewSubscriptionClient returns a client for the Subscription from the given config.
-func NewSubscriptionClient(c config) *SubscriptionClient {
-	return &SubscriptionClient{config: c}
-}
-
-// Create returns a create builder for Subscription.
-func (c *SubscriptionClient) Create() *SubscriptionCreate {
-	return &SubscriptionCreate{config: c.config}
-}
-
-// Update returns an update builder for Subscription.
-func (c *SubscriptionClient) Update() *SubscriptionUpdate {
-	return &SubscriptionUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SubscriptionClient) UpdateOne(s *Subscription) *SubscriptionUpdateOne {
-	return c.UpdateOneID(s.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SubscriptionClient) UpdateOneID(id int) *SubscriptionUpdateOne {
-	return &SubscriptionUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for Subscription.
-func (c *SubscriptionClient) Delete() *SubscriptionDelete {
-	return &SubscriptionDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *SubscriptionClient) DeleteOne(s *Subscription) *SubscriptionDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *SubscriptionClient) DeleteOneID(id int) *SubscriptionDeleteOne {
-	return &SubscriptionDeleteOne{c.Delete().Where(subscription.ID(id))}
-}
-
-// Create returns a query builder for Subscription.
-func (c *SubscriptionClient) Query() *SubscriptionQuery {
-	return &SubscriptionQuery{config: c.config}
-}
-
-// Get returns a Subscription entity by its id.
-func (c *SubscriptionClient) Get(ctx context.Context, id int) (*Subscription, error) {
-	return c.Query().Where(subscription.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SubscriptionClient) GetX(ctx context.Context, id int) *Subscription {
-	s, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
-
-// QueryPlans queries the plans edge of a Subscription.
-func (c *SubscriptionClient) QueryPlans(s *Subscription) *PlanQuery {
-	query := &PlanQuery{config: c.config}
-	id := s.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(subscription.Table, subscription.FieldID, id),
-		sqlgraph.To(plan.Table, plan.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, subscription.PlansTable, subscription.PlansColumn),
-	)
-	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }

@@ -10,27 +10,23 @@ import (
 
 // ID filters vertices based on their identifier.
 func ID(id int) predicate.Instrument {
-	return predicate.Instrument(
-		func(s *sql.Selector) {
-			s.Where(sql.EQ(s.C(FieldID), id))
-		},
-	)
+	return predicate.Instrument(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldID), id))
+	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDIn applies the In predicate on the ID field.
@@ -47,8 +43,7 @@ func IDIn(ids ...int) predicate.Instrument {
 			v[i] = ids[i]
 		}
 		s.Where(sql.In(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
@@ -65,72 +60,63 @@ func IDNotIn(ids ...int) predicate.Instrument {
 			v[i] = ids[i]
 		}
 		s.Where(sql.NotIn(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeI18nID applies equality check predicate on the "type_i18n_id" field. It's identical to TypeI18nIDEQ.
 func TypeI18nID(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
 func TypeEQ(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeNEQ applies the NEQ predicate on the "type" field.
 func TypeNEQ(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeIn applies the In predicate on the "type" field.
@@ -147,8 +133,7 @@ func TypeIn(vs ...string) predicate.Instrument {
 			return
 		}
 		s.Where(sql.In(s.C(FieldType), v...))
-	},
-	)
+	})
 }
 
 // TypeNotIn applies the NotIn predicate on the "type" field.
@@ -165,96 +150,84 @@ func TypeNotIn(vs ...string) predicate.Instrument {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldType), v...))
-	},
-	)
+	})
 }
 
 // TypeGT applies the GT predicate on the "type" field.
 func TypeGT(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeGTE applies the GTE predicate on the "type" field.
 func TypeGTE(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeLT applies the LT predicate on the "type" field.
 func TypeLT(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeLTE applies the LTE predicate on the "type" field.
 func TypeLTE(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeContains applies the Contains predicate on the "type" field.
 func TypeContains(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeHasPrefix applies the HasPrefix predicate on the "type" field.
 func TypeHasPrefix(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeHasSuffix applies the HasSuffix predicate on the "type" field.
 func TypeHasSuffix(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeEqualFold applies the EqualFold predicate on the "type" field.
 func TypeEqualFold(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeContainsFold applies the ContainsFold predicate on the "type" field.
 func TypeContainsFold(v string) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldType), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDEQ applies the EQ predicate on the "type_i18n_id" field.
 func TypeI18nIDEQ(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDNEQ applies the NEQ predicate on the "type_i18n_id" field.
 func TypeI18nIDNEQ(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDIn applies the In predicate on the "type_i18n_id" field.
@@ -271,8 +244,7 @@ func TypeI18nIDIn(vs ...int64) predicate.Instrument {
 			return
 		}
 		s.Where(sql.In(s.C(FieldTypeI18nID), v...))
-	},
-	)
+	})
 }
 
 // TypeI18nIDNotIn applies the NotIn predicate on the "type_i18n_id" field.
@@ -289,56 +261,49 @@ func TypeI18nIDNotIn(vs ...int64) predicate.Instrument {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldTypeI18nID), v...))
-	},
-	)
+	})
 }
 
 // TypeI18nIDGT applies the GT predicate on the "type_i18n_id" field.
 func TypeI18nIDGT(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDGTE applies the GTE predicate on the "type_i18n_id" field.
 func TypeI18nIDGTE(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDLT applies the LT predicate on the "type_i18n_id" field.
 func TypeI18nIDLT(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDLTE applies the LTE predicate on the "type_i18n_id" field.
 func TypeI18nIDLTE(v int64) predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldTypeI18nID), v))
-	},
-	)
+	})
 }
 
 // TypeI18nIDIsNil applies the IsNil predicate on the "type_i18n_id" field.
 func TypeI18nIDIsNil() predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.IsNull(s.C(FieldTypeI18nID)))
-	},
-	)
+	})
 }
 
 // TypeI18nIDNotNil applies the NotNil predicate on the "type_i18n_id" field.
 func TypeI18nIDNotNil() predicate.Instrument {
 	return predicate.Instrument(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldTypeI18nID)))
-	},
-	)
+	})
 }
 
 // HasPayments applies the HasEdge predicate on the "payments" edge.
@@ -350,8 +315,7 @@ func HasPayments() predicate.Instrument {
 			sqlgraph.Edge(sqlgraph.O2M, false, PaymentsTable, PaymentsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
-	},
-	)
+	})
 }
 
 // HasPaymentsWith applies the HasEdge predicate on the "payments" edge with a given conditions (other predicates).
@@ -367,44 +331,37 @@ func HasPaymentsWith(preds ...predicate.Payment) predicate.Instrument {
 				p(s)
 			}
 		})
-	},
-	)
+	})
 }
 
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Instrument) predicate.Instrument {
-	return predicate.Instrument(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for _, p := range predicates {
-				p(s1)
-			}
-			s.Where(s1.P())
-		},
-	)
+	return predicate.Instrument(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for _, p := range predicates {
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Or groups list of predicates with the OR operator between them.
 func Or(predicates ...predicate.Instrument) predicate.Instrument {
-	return predicate.Instrument(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for i, p := range predicates {
-				if i > 0 {
-					s1.Or()
-				}
-				p(s1)
+	return predicate.Instrument(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for i, p := range predicates {
+			if i > 0 {
+				s1.Or()
 			}
-			s.Where(s1.P())
-		},
-	)
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Instrument) predicate.Instrument {
-	return predicate.Instrument(
-		func(s *sql.Selector) {
-			p(s.Not())
-		},
-	)
+	return predicate.Instrument(func(s *sql.Selector) {
+		p(s.Not())
+	})
 }

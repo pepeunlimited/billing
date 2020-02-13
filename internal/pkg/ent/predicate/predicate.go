@@ -18,11 +18,5 @@ type Orders func(*sql.Selector)
 // Payment is the predicate function for payment builders.
 type Payment func(*sql.Selector)
 
-// Plan is the predicate function for plan builders.
-type Plan func(*sql.Selector)
-
-// Subscription is the predicate function for subscription builders.
-type Subscription func(*sql.Selector)
-
 // Txs is the predicate function for txs builders.
 type Txs func(*sql.Selector)

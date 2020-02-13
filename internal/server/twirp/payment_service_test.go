@@ -40,7 +40,7 @@ func TestPaymentServer_CreatePayment(t *testing.T) {
 		t.Error(err)
 		t.FailNow()
 	}
-	if int64(fromDB.Edges.Instruments.ID) != payment.PaymentInstrument.Id {
+	if uint32(fromDB.Edges.Instruments.ID) != payment.PaymentInstrumentId {
 		t.FailNow()
 	}
 	if int64(fromDB.Edges.Orders.ID) != payment.OrderId {
