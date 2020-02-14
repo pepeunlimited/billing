@@ -1,4 +1,4 @@
-# rpc-stater-kit
+# billing
 
 A starting point project to create `todo`-service
 
