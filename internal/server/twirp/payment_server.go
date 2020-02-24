@@ -3,50 +3,48 @@ package twirp
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
+	"github.com/pepeunlimited/billing/internal/pkg/mysql/orders"
 	"github.com/pepeunlimited/billing/internal/pkg/mysql/paymentrepo"
 	"github.com/pepeunlimited/billing/internal/server/errorz"
 	"github.com/pepeunlimited/billing/internal/server/etc"
 	"github.com/pepeunlimited/billing/internal/server/validator"
-	"github.com/pepeunlimited/billing/pkg/paymentrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/payment"
 )
 
 type PaymentServer struct {
-	payment paymentrepo.PaymentRepository
-	orders 	ordersrepo.OrdersRepository
-	valid  	validator.PaymentServerValidator
-	paymenterr errorz.PaymentErrorz
-	orderserr errorz.OrderErrorz
+	payment    paymentrepo.PaymentRepository
+	orders     orders.OrdersRepository
+	valid      validator.PaymentServerValidator
 }
 
-func (server PaymentServer) CreatePayment(ctx context.Context, params *paymentrpc.CreatePaymentParams) (*paymentrpc.Payment, error) {
+func (server PaymentServer) CreatePayment(ctx context.Context, params *payment.CreatePaymentParams) (*payment.Payment, error) {
 	if err := server.valid.CreatePayment(params); err != nil {
 		return nil, err
 	}
 	_, err := server.orders.GetOrderByUserID(ctx, int(params.OrderId), params.UserId, false, false, false)
 	if err != nil {
-		return nil, server.orderserr.IsOrdersError(err)
+		return nil, errorz.Orders(err)
 	}
 	payment, err := server.payment.CreatePayment(ctx, int(params.OrderId), int(params.PaymentInstrumentId))
 	if err != nil {
-		return nil, server.paymenterr.IsPaymentsError(err)
+		return nil, errorz.Payment(err)
 	}
 	return etc.ToPayment(payment), nil
 }
 
-func (server PaymentServer) GetPayments(ctx context.Context, params *paymentrpc.GetPaymentsParams) (*paymentrpc.GetPaymentsResponse, error) {
+func (server PaymentServer) GetPayments(ctx context.Context, params *payment.GetPaymentsParams) (*payment.GetPaymentsResponse, error) {
 	err := server.valid.GetPayments(params)
 	if err != nil {
 		return nil, err
 	}
 	payments, nextPageToken, err := server.payment.GetPayments(ctx, params.UserId, params.PageToken, params.PageSize)
-	return &paymentrpc.GetPaymentsResponse{
+	return &payment.GetPaymentsResponse{
 		Payments:      etc.ToPayments(payments),
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (server PaymentServer) GetPayment(ctx context.Context, params *paymentrpc.GetPaymentParams) (*paymentrpc.Payment, error) {
+func (server PaymentServer) GetPayment(ctx context.Context, params *payment.GetPaymentParams) (*payment.Payment, error) {
 	err := server.valid.GetPayment(params)
 	if err != nil {
 		return nil, err
@@ -58,24 +56,24 @@ func (server PaymentServer) GetPayment(ctx context.Context, params *paymentrpc.G
 		payment, err = server.payment.GetPaymentByOrderID(ctx, int(params.OrderId))
 	}
 	if err != nil {
-		return nil, server.paymenterr.IsPaymentsError(err)
+		return nil, errorz.Payment(err)
 	}
 	return etc.ToPayment(payment), nil
 }
 
-func (server PaymentServer) CreatePaymentInstrument(ctx context.Context, params *paymentrpc.CreatePaymentInstrumentParams) (*paymentrpc.PaymentInstrument, error) {
+func (server PaymentServer) CreatePaymentInstrument(ctx context.Context, params *payment.CreatePaymentInstrumentParams) (*payment.PaymentInstrument, error) {
 	instrument, err := server.valid.CreatePaymentInstrument(params)
 	if err != nil {
 		return nil, err
 	}
 	paymentInstrument, err := server.payment.CreatePaymentInstrument(ctx, instrument)
 	if err != nil {
-		return nil, server.paymenterr.IsPaymentsError(err)
+		return nil, errorz.Payment(err)
 	}
 	return etc.ToPaymentInstrument(paymentInstrument), nil
 }
 
-func (server PaymentServer) GetPaymentInstrument(ctx context.Context, params *paymentrpc.GetPaymentInstrumentParams) (*paymentrpc.PaymentInstrument, error) {
+func (server PaymentServer) GetPaymentInstrument(ctx context.Context, params *payment.GetPaymentInstrumentParams) (*payment.PaymentInstrument, error) {
 	err := server.valid.GetPaymentInstrument(params)
 	if err != nil {
 		return nil, err
@@ -89,25 +87,23 @@ func (server PaymentServer) GetPaymentInstrument(ctx context.Context, params *pa
 		instrument, err = server.payment.GetPaymentInstrumentByID(ctx, int(params.Id))
 	}
 	if err != nil {
-		return nil, server.paymenterr.IsPaymentsError(err)
+		return nil, errorz.Payment(err)
 	}
 	return etc.ToPaymentInstrument(instrument), nil
 }
 
-func (server PaymentServer) GetPaymentInstruments(ctx context.Context, params *paymentrpc.GetPaymentInstrumentsParams) (*paymentrpc.GetPaymentInstrumentsResponse, error) {
+func (server PaymentServer) GetPaymentInstruments(ctx context.Context, params *payment.GetPaymentInstrumentsParams) (*payment.GetPaymentInstrumentsResponse, error) {
 	instruments, err := server.payment.GetPaymentInstruments(ctx)
 	if err != nil {
-		return nil, server.paymenterr.IsPaymentsError(err)
+		return nil, errorz.Payment(err)
 	}
-	return &paymentrpc.GetPaymentInstrumentsResponse{PaymentInstruments: etc.ToPaymentInstruments(instruments)}, nil
+	return &payment.GetPaymentInstrumentsResponse{PaymentInstruments: etc.ToPaymentInstruments(instruments)}, nil
 }
 
 func NewPaymentServer(client *ent.Client) PaymentServer {
 	return PaymentServer{
-		payment:		paymentrepo.NewPaymentRepository(client),
-		valid:			validator.NewPaymentServerValidator(),
-		orders:			ordersrepo.NewOrdersRepository(client),
-		orderserr:		errorz.NewOrderErrorz(),
-		paymenterr: 	errorz.NewPaymentErrorz(),
+		payment:    paymentrepo.New(client),
+		valid:      validator.NewPaymentServerValidator(),
+		orders:     orders.New(client),
 	}
 }

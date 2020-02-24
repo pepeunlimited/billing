@@ -16,7 +16,8 @@ CREATE TABLE orders (
 );
 CREATE TABLE order_items (
     id           BIGINT  NOT NULL AUTO_INCREMENT,
-    price_id     BIGINT  NOT NULL,
+    price_id     BIGINT  NULL, # depends what user did order => product
+    plan_id      BIGINT  NULL, # depends what user did order => subscription_product
     orders_items BIGINT,
     quantity     TINYINT UNSIGNED DEFAULT 1,
     FOREIGN KEY (orders_items) REFERENCES orders (id),

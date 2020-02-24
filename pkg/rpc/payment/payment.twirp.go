@@ -8,7 +8,7 @@ This code was generated with github.com/twitchtv/twirp/protoc-gen-twirp v5.10.0.
 It is generated from these files:
 	payment.proto
 */
-package paymentrpc
+package payment
 
 import bytes "bytes"
 import strings "strings"

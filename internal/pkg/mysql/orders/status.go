@@ -1,4 +1,4 @@
-package ordersrepo
+package orders
 
 import "strings"
 

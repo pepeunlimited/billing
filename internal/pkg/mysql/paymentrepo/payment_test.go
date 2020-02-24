@@ -3,13 +3,13 @@ package paymentrepo
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/ordersrepo"
+	"github.com/pepeunlimited/billing/internal/pkg/mysql/orders"
 	"testing"
 )
 
 func TestPaymentMySQL_CreatePaymentInstrument(t *testing.T) {
 	ctx := context.TODO()
-	paymentrepo := NewPaymentRepository(ent.NewEntClient())
+	paymentrepo := New(ent.NewEntClient())
 	paymentrepo.Wipe(ctx)
 	apple, err := paymentrepo.CreatePaymentInstrument(ctx, PaymentTypeFromString("apple"))
 	if err != nil {
@@ -61,9 +61,9 @@ func TestPaymentMySQL_CreatePaymentInstrument(t *testing.T) {
 func TestPaymentMySQL_CreatePaymentDuplicate(t *testing.T) {
 	ctx := context.TODO()
 	client := ent.NewEntClient()
-	prepo := NewPaymentRepository(client)
+	prepo := New(client)
 	prepo.Wipe(ctx)
-	orepo := ordersrepo.NewOrdersRepository(client)
+	orepo := orders.New(client)
 	userId := int64(1)
 	order,_ := orepo.CreateOrder(ctx, userId, []*ent.Item{&ent.Item{PriceID: 100, Quantity: 1}})
 	instrument,_ := prepo.CreatePaymentInstrument(ctx, Google)

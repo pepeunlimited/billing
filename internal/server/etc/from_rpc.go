@@ -2,10 +2,10 @@ package etc
 
 import (
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/pkg/orderrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/order"
 )
 
-func FromOrderItems(items []*orderrpc.OrderItem) []*ent.Item {
+func FromOrderItems(items []*order.OrderItem) []*ent.Item {
 	if items == nil {
 		return []*ent.Item{}
 	}
@@ -16,7 +16,7 @@ func FromOrderItems(items []*orderrpc.OrderItem) []*ent.Item {
 	return toEnt
 }
 
-func FromOrderItem(item *orderrpc.OrderItem) *ent.Item {
+func FromOrderItem(item *order.OrderItem) *ent.Item {
 	return &ent.Item{
 		PriceID:  item.PriceId,
 		Quantity: uint8(item.Quantity),

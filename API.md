@@ -49,7 +49,7 @@ $ curl -H "Content-Type: application/json" \
 ```
 curl -H "Content-Type: application/json" \
 -X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.PaymentService/GetPaymentInstrument" \
--d '{"id":1}'©©
+-d '{"id":1}'
 ```
 ##### GetPaymentInstruments
 ```

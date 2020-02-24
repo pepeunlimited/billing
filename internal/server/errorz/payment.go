@@ -6,9 +6,7 @@ import (
 	"log"
 )
 
-type PaymentErrorz struct {}
-
-func (PaymentErrorz) IsPaymentsError(err error) error {
+func Payment(err error) error {
 	switch err {
 	case paymentrepo.ErrPaymentInstrumentNotExist:
 		return twirp.NotFoundError("payment_instrument_not_found")
@@ -21,8 +19,4 @@ func (PaymentErrorz) IsPaymentsError(err error) error {
 	}
 	log.Print("payment-server: unknown database issue: "+err.Error())
 	return twirp.InternalError(err.Error())
-}
-
-func NewPaymentErrorz() PaymentErrorz {
-	return PaymentErrorz{}
 }

@@ -2,44 +2,44 @@ package etc
 
 import (
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/pkg/orderrpc"
-	"github.com/pepeunlimited/billing/pkg/paymentrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/order"
+	"github.com/pepeunlimited/billing/pkg/rpc/payment"
 	"time"
 )
 
-func ToOrder(orders *ent.Orders) *orderrpc.Order {
-	return &orderrpc.Order{
+func ToOrder(orders *ent.Orders) *order.Order {
+	return &order.Order{
 		Id:        int64(orders.ID),
 		CreatedAt: orders.CreatedAt.Format(time.RFC3339),
 		UserId:    orders.UserID,
 	}
 }
 
-func ToOrders(orders []*ent.Orders) []*orderrpc.Order {
-	list := make([]*orderrpc.Order, 0)
+func ToOrders(orders []*ent.Orders) []*order.Order {
+	list := make([]*order.Order, 0)
 	for _, order := range orders {
 		list = append(list, ToOrder(order))
 	}
 	return list
 }
 
-func ToOrderItems(items []*ent.Item) []*orderrpc.OrderItem {
+func ToOrderItems(items []*ent.Item) []*order.OrderItem {
 	return ToOrderItemsWithOrderId(items, 0)
 }
 
-func ToOrderItemsWithOrderId(items []*ent.Item, orderId int64) []*orderrpc.OrderItem {
-	itemsrpc := make([]*orderrpc.OrderItem, 0)
+func ToOrderItemsWithOrderId(items []*ent.Item, orderId int64) []*order.OrderItem {
+	itemsrpc := make([]*order.OrderItem, 0)
 	for _, item := range items {
 		itemsrpc = append(itemsrpc, ToOrderItem(item, orderId))
 	}
 	return itemsrpc
 }
 
-func ToOrderItem(item *ent.Item, orderId int64) *orderrpc.OrderItem {
+func ToOrderItem(item *ent.Item, orderId int64) *order.OrderItem {
 	if orderId == 0 {
 		orderId = int64(item.Edges.Orders.ID)
 	}
-	return &orderrpc.OrderItem{
+	return &order.OrderItem{
 		Id:       int64(item.ID),
 		PriceId:  item.PriceID,
 		Quantity: uint32(item.Quantity),
@@ -47,23 +47,23 @@ func ToOrderItem(item *ent.Item, orderId int64) *orderrpc.OrderItem {
 	}
 }
 
-func ToOrderTXsWithOrderId(orderTXs []*ent.Txs, orderId int64) []*orderrpc.OrderTx {
-	txs := make([]*orderrpc.OrderTx, 0)
+func ToOrderTXsWithOrderId(orderTXs []*ent.Txs, orderId int64) []*order.OrderTx {
+	txs := make([]*order.OrderTx, 0)
 	for _, orderTX := range orderTXs {
 		txs = append(txs, ToOrderTX(orderTX, orderId))
 	}
 	return txs
 }
 
-func ToOrderTXs(orderTXs []*ent.Txs) []*orderrpc.OrderTx {
+func ToOrderTXs(orderTXs []*ent.Txs) []*order.OrderTx {
 	return ToOrderTXsWithOrderId(orderTXs, 0)
 }
 
-func ToOrderTX(orderTX *ent.Txs, orderId int64) *orderrpc.OrderTx {
+func ToOrderTX(orderTX *ent.Txs, orderId int64) *order.OrderTx {
 	if orderId == 0 {
 		orderId = int64(orderTX.Edges.Orders.ID)
 	}
-	return &orderrpc.OrderTx{
+	return &order.OrderTx{
 		Id:       int64(orderTX.ID),
 		OrderId:  orderId,
 		Status:   orderTX.Status,
@@ -71,32 +71,32 @@ func ToOrderTX(orderTX *ent.Txs, orderId int64) *orderrpc.OrderTx {
 	}
 }
 
-func ToPaymentInstrument(instrument *ent.Instrument) *paymentrpc.PaymentInstrument {
-	return &paymentrpc.PaymentInstrument{
+func ToPaymentInstrument(instrument *ent.Instrument) *payment.PaymentInstrument {
+	return &payment.PaymentInstrument{
 		Id:   uint32(instrument.ID),
 		Type: instrument.Type,
 		TypeI18NId: 0,
 	}
 }
 
-func ToPaymentInstruments(instruments []*ent.Instrument) []*paymentrpc.PaymentInstrument {
-	list := make([]*paymentrpc.PaymentInstrument, 0)
+func ToPaymentInstruments(instruments []*ent.Instrument) []*payment.PaymentInstrument {
+	list := make([]*payment.PaymentInstrument, 0)
 	for _, instrument := range instruments {
 		list = append(list, ToPaymentInstrument(instrument))
 	}
 	return list
 }
 
-func ToPayment(payment *ent.Payment) *paymentrpc.Payment {
-	return &paymentrpc.Payment{
+func ToPayment(payment *ent.Payment) *payment.Payment {
+	return &payment.Payment{
 		Id:					 int64(payment.ID),
 		PaymentInstrumentId: uint32(payment.Edges.Instruments.ID),
 		OrderId:           	 int64(payment.Edges.Orders.ID),
 	}
 }
 
-func ToPayments(payments []*ent.Payment) []*paymentrpc.Payment {
-	list := make([]*paymentrpc.Payment, 0)
+func ToPayments(payments []*ent.Payment) []*payment.Payment {
+	list := make([]*payment.Payment, 0)
 	for _, payment := range payments {
 		list = append(list, ToPayment(payment))
 	}

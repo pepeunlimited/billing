@@ -153,7 +153,7 @@ func (mysql paymentMySQL) CreatePayment(ctx context.Context, orderId int, instru
 	return mysql.GetPaymentByOrderID(ctx, orderId)
 }
 
-func NewPaymentRepository(client *ent.Client) PaymentRepository {
+func New(client *ent.Client) PaymentRepository {
 	return paymentMySQL{client:client}
 }
 

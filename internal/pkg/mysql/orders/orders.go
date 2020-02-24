@@ -1,4 +1,4 @@
-package ordersrepo
+package orders
 
 import (
 	"context"
@@ -135,7 +135,7 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 	return mysql.GetOrderByUserID(ctx, order.ID, userID, true, true, false)
 }
 
-func NewOrdersRepository(client *ent.Client) OrdersRepository {
+func New(client *ent.Client) OrdersRepository {
 	return ordersMySQL{client:client}
 }
 

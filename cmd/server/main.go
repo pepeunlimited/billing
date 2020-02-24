@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
 	"github.com/pepeunlimited/billing/internal/server/twirp"
-	"github.com/pepeunlimited/billing/pkg/orderrpc"
-	"github.com/pepeunlimited/billing/pkg/paymentrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/order"
+	"github.com/pepeunlimited/billing/pkg/rpc/payment"
 	"github.com/pepeunlimited/microservice-kit/middleware"
 	"log"
 	"net/http"
@@ -22,8 +22,8 @@ func main() {
 	log.Printf("Starting the BillingSever... version=[%v]", Version)
 
 	client := ent.NewEntClient()
-	os := orderrpc.NewOrderServiceServer(twirp.NewOrderServer(client), nil)
-	ps := paymentrpc.NewPaymentServiceServer(twirp.NewPaymentServer(client), nil)
+	os := order.NewOrderServiceServer(twirp.NewOrderServer(client), nil)
+	ps := payment.NewPaymentServiceServer(twirp.NewPaymentServer(client), nil)
 
 	mux := http.NewServeMux()
 	mux.Handle(os.PathPrefix(), middleware.Adapt(os))

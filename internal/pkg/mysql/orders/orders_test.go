@@ -1,4 +1,4 @@
-package ordersrepo
+package orders
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 
 func TestOrdersMySQL_CreateOrder(t *testing.T) {
 	ctx := context.TODO()
-	pay := paymentrepo.NewPaymentRepository(ent.NewEntClient())
+	pay := paymentrepo.New(ent.NewEntClient())
 	pay.Wipe(ctx)
 
-	ordersrepo := NewOrdersRepository(ent.NewEntClient())
+	ordersrepo := New(ent.NewEntClient())
 	ordersrepo.Wipe(ctx)
 
 
@@ -87,7 +87,7 @@ func TestOrdersMySQL_CreateOrder(t *testing.T) {
 
 func TestOrdersMySQL_GetOrdersByUserID(t *testing.T) {
 	ctx := context.TODO()
-	ordersrepo := NewOrdersRepository(ent.NewEntClient())
+	ordersrepo := New(ent.NewEntClient())
 	ordersrepo.Wipe(ctx)
 	userID := int64(1)
 	items := []*ent.Item{

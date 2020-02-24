@@ -3,7 +3,7 @@ package twirp
 import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
-	"github.com/pepeunlimited/billing/pkg/orderrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/order"
 	"testing"
 )
 
@@ -12,11 +12,11 @@ func TestOrderServer_GetOrderTxs(t *testing.T) {
 	server := NewOrderServer(ent.NewEntClient())
 	server.orders.Wipe(ctx)
 	userId := int64(1)
-	createOrder,_ := server.CreateOrder(ctx, &orderrpc.CreateOrderParams{
-		OrderItems: []*orderrpc.OrderItem{&orderrpc.OrderItem{PriceId: 1, Quantity: 1}},
+	createOrder,_ := server.CreateOrder(ctx, &order.CreateOrderParams{
+		OrderItems: []*order.OrderItem{&order.OrderItem{PriceId: 1, Quantity: 1}},
 		UserId:     userId,
 	})
-	txs, err := server.GetOrderTxs(ctx, &orderrpc.GetOrderTxsParams{
+	txs, err := server.GetOrderTxs(ctx, &order.GetOrderTxsParams{
 		UserId:  userId,
 		OrderId: createOrder.Order.Id,
 	})
@@ -38,11 +38,11 @@ func TestOrderServer_GetOrderItems(t *testing.T) {
 	server := NewOrderServer(ent.NewEntClient())
 	server.orders.Wipe(ctx)
 	userId := int64(1)
-	createOrder,_ := server.CreateOrder(ctx, &orderrpc.CreateOrderParams{
-		OrderItems: []*orderrpc.OrderItem{&orderrpc.OrderItem{PriceId: 1, Quantity: 1}},
+	createOrder,_ := server.CreateOrder(ctx, &order.CreateOrderParams{
+		OrderItems: []*order.OrderItem{&order.OrderItem{PriceId: 1, Quantity: 1}},
 		UserId:     userId,
 	})
-	items, err := server.GetOrderItems(ctx, &orderrpc.GetOrderItemsParams{
+	items, err := server.GetOrderItems(ctx, &order.GetOrderItemsParams{
 		UserId:  userId,
 		OrderId: createOrder.Order.Id,
 	})
@@ -68,11 +68,11 @@ func TestOrderServer_GetOrder(t *testing.T) {
 	server := NewOrderServer(ent.NewEntClient())
 	server.orders.Wipe(ctx)
 	userId := int64(1)
-	createOrder,_ := server.CreateOrder(ctx, &orderrpc.CreateOrderParams{
-		OrderItems: []*orderrpc.OrderItem{&orderrpc.OrderItem{PriceId: 1, Quantity: 1}},
+	createOrder,_ := server.CreateOrder(ctx, &order.CreateOrderParams{
+		OrderItems: []*order.OrderItem{&order.OrderItem{PriceId: 1, Quantity: 1}},
 		UserId:     userId,
 	})
-	order, err := server.GetOrder(ctx, &orderrpc.GetOrderParams{
+	order, err := server.GetOrder(ctx, &order.GetOrderParams{
 		UserId:  userId,
 		OrderId: createOrder.Order.Id,
 	})
@@ -91,11 +91,11 @@ func TestOrderServer_GetOrders(t *testing.T) {
 	server := NewOrderServer(ent.NewEntClient())
 	server.orders.Wipe(ctx)
 	userId := int64(1)
-	server.CreateOrder(ctx, &orderrpc.CreateOrderParams{
-		OrderItems: []*orderrpc.OrderItem{&orderrpc.OrderItem{PriceId: 1, Quantity: 1}},
+	server.CreateOrder(ctx, &order.CreateOrderParams{
+		OrderItems: []*order.OrderItem{&order.OrderItem{PriceId: 1, Quantity: 1}},
 		UserId:     userId,
 	})
-	order, err := server.GetOrders(ctx, &orderrpc.GetOrdersParams{
+	order, err := server.GetOrders(ctx, &order.GetOrdersParams{
 		UserId:  1,
 		PageToken:0,
 		PageSize:20,
@@ -116,12 +116,12 @@ func TestOrderServer_CreateOrder(t *testing.T) {
 	ctx := context.TODO()
 	server := NewOrderServer(ent.NewEntClient())
 	server.orders.Wipe(ctx)
-	items := []*orderrpc.OrderItem{&orderrpc.OrderItem{
+	items := []*order.OrderItem{&order.OrderItem{
 		PriceId:  1,
 		Quantity: 1,
 	}}
 	userId := int64(1)
-	order, err := server.CreateOrder(ctx, &orderrpc.CreateOrderParams{
+	order, err := server.CreateOrder(ctx, &order.CreateOrderParams{
 		OrderItems: items,
 		UserId:     userId,
 	})

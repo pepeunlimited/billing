@@ -1,13 +1,13 @@
 package validator
 
 import (
-	"github.com/pepeunlimited/billing/pkg/orderrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/order"
 	"github.com/twitchtv/twirp"
 )
 
 type OrderServerValidator struct {}
 
-func (v OrderServerValidator) GetOrder(params *orderrpc.GetOrderParams) error {
+func (v OrderServerValidator) GetOrder(params *order.GetOrderParams) error {
 	if params.OrderId == 0 {
 		return twirp.RequiredArgumentError("order_id")
 	}
@@ -17,7 +17,7 @@ func (v OrderServerValidator) GetOrder(params *orderrpc.GetOrderParams) error {
 	return nil
 }
 
-func (v OrderServerValidator) GetOrderTxs(params *orderrpc.GetOrderTxsParams) error {
+func (v OrderServerValidator) GetOrderTxs(params *order.GetOrderTxsParams) error {
 	if params.OrderId == 0 {
 		return twirp.RequiredArgumentError("order_id")
 	}
@@ -27,7 +27,7 @@ func (v OrderServerValidator) GetOrderTxs(params *orderrpc.GetOrderTxsParams) er
 	return nil
 }
 
-func (v OrderServerValidator) GetOrderItems(params *orderrpc.GetOrderItemsParams) error {
+func (v OrderServerValidator) GetOrderItems(params *order.GetOrderItemsParams) error {
 	if params.OrderId == 0 {
 		return twirp.RequiredArgumentError("order_id")
 	}
@@ -37,7 +37,7 @@ func (v OrderServerValidator) GetOrderItems(params *orderrpc.GetOrderItemsParams
 	return nil
 }
 
-func (v OrderServerValidator) GetOrders(params *orderrpc.GetOrdersParams) error {
+func (v OrderServerValidator) GetOrders(params *order.GetOrdersParams) error {
 	if params.UserId == 0 {
 		return twirp.RequiredArgumentError("user_id")
 	}
@@ -47,7 +47,7 @@ func (v OrderServerValidator) GetOrders(params *orderrpc.GetOrdersParams) error 
 	return nil
 }
 
-func (v OrderServerValidator) CreateOrder(params *orderrpc.CreateOrderParams) error {
+func (v OrderServerValidator) CreateOrder(params *order.CreateOrderParams) error {
 	if params.UserId == 0 {
 		return twirp.RequiredArgumentError("user_id")
 	}

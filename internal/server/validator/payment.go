@@ -2,7 +2,7 @@ package validator
 
 import (
 	"github.com/pepeunlimited/billing/internal/pkg/mysql/paymentrepo"
-	"github.com/pepeunlimited/billing/pkg/paymentrpc"
+	"github.com/pepeunlimited/billing/pkg/rpc/payment"
 	"github.com/pepeunlimited/microservice-kit/validator"
 	"github.com/twitchtv/twirp"
 )
@@ -13,7 +13,7 @@ func NewPaymentServerValidator() PaymentServerValidator {
 	return PaymentServerValidator{}
 }
 
-func (PaymentServerValidator) CreatePayment(params *paymentrpc.CreatePaymentParams) error {
+func (PaymentServerValidator) CreatePayment(params *payment.CreatePaymentParams) error {
 	if params.OrderId == 0 {
 		return twirp.RequiredArgumentError("order_id")
 	}
@@ -26,7 +26,7 @@ func (PaymentServerValidator) CreatePayment(params *paymentrpc.CreatePaymentPara
 	return nil
 }
 
-func (PaymentServerValidator) CreatePaymentInstrument(params *paymentrpc.CreatePaymentInstrumentParams) (paymentrepo.PaymentType, error) {
+func (PaymentServerValidator) CreatePaymentInstrument(params *payment.CreatePaymentInstrumentParams) (paymentrepo.PaymentType, error) {
 	types := paymentrepo.PaymentTypeFromString(params.Type)
 	if types.String() == "UNKNOWN" {
 		return 0, twirp.InvalidArgumentError("type", "unknown_payment_instrument_type")
@@ -34,7 +34,7 @@ func (PaymentServerValidator) CreatePaymentInstrument(params *paymentrpc.CreateP
 	return types, nil
 }
 
-func (PaymentServerValidator) GetPaymentInstrument(params *paymentrpc.GetPaymentInstrumentParams) error {
+func (PaymentServerValidator) GetPaymentInstrument(params *payment.GetPaymentInstrumentParams) error {
 	if validator.IsEmpty(params.Type) && params.Id == 0 {
 		return twirp.RequiredArgumentError("type_or_id")
 	}
@@ -47,7 +47,7 @@ func (PaymentServerValidator) GetPaymentInstrument(params *paymentrpc.GetPayment
 	return nil
 }
 
-func (PaymentServerValidator) GetPayments(params *paymentrpc.GetPaymentsParams) error {
+func (PaymentServerValidator) GetPayments(params *payment.GetPaymentsParams) error {
 	if params.UserId == 0 {
 		return twirp.RequiredArgumentError("user_id")
 	}
@@ -57,7 +57,7 @@ func (PaymentServerValidator) GetPayments(params *paymentrpc.GetPaymentsParams) 
 	return nil
 }
 
-func (PaymentServerValidator) GetPayment(params *paymentrpc.GetPaymentParams) error {
+func (PaymentServerValidator) GetPayment(params *payment.GetPaymentParams) error {
 	if params.UserId == 0 {
 		return twirp.RequiredArgumentError("user_id")
 	}
