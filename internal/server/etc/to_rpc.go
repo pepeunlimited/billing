@@ -87,11 +87,11 @@ func ToPaymentInstruments(instruments []*ent.Instrument) []*payment.PaymentInstr
 	return list
 }
 
-func ToPayment(payment *ent.Payment) *payment.Payment {
+func ToPayment(from *ent.Payment) *payment.Payment {
 	return &payment.Payment{
-		Id:					 int64(payment.ID),
-		PaymentInstrumentId: uint32(payment.Edges.Instruments.ID),
-		OrderId:           	 int64(payment.Edges.Orders.ID),
+		Id:					 int64(from.ID),
+		PaymentInstrumentId: uint32(from.Edges.Instruments.ID),
+		OrderId:           	 int64(from.Edges.Orders.ID),
 	}
 }
 
