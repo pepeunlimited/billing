@@ -26,7 +26,7 @@ spec:
               value: root
             - name: MYSQL_USER
               value: root
-          image: pepeunlimited/billing:0.0.1-12-gd65fbaa
+          image: pepeunlimited/billing:0.0.1-14-g3b183e7
           name: billing
           ports:
             - containerPort: 8080
