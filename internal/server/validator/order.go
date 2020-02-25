@@ -61,8 +61,8 @@ func (v OrderServerValidator) CreateOrder(params *order.CreateOrderParams) error
 		if item.Quantity == 0 {
 			return twirp.RequiredArgumentError("quantity")
 		}
-		if item.PriceId == 0 {
-			return twirp.RequiredArgumentError("price_id")
+		if item.PriceId == 0 && item.PlanId == 0 {
+			return twirp.RequiredArgumentError("price_id_or_plan_id")
 		}
 	}
 	return nil
