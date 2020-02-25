@@ -22,6 +22,11 @@ $ curl -H "Content-Type: application/json" \
 -X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.OrderService/CreateOrder" \
 -d '{"user_id": 1, "order_items": [{"quantity": 1, "price_id":1}]}'
 ```
+```
+$ curl -H "Content-Type: application/json" \
+-X POST "api.dev.pepeunlimited.com/twirp/pepeunlimited.billing.OrderService/CreateOrder" \
+-d '{"user_id": 3, "order_items": [{"quantity": 1, "plan_id":1}]}'
+```
 ##### GetOrderItems
 ```
 $ curl -H "Content-Type: application/json" \

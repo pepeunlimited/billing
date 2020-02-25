@@ -19,6 +19,7 @@ func FromOrderItems(items []*order.OrderItem) []*ent.Item {
 func FromOrderItem(item *order.OrderItem) *ent.Item {
 	return &ent.Item{
 		PriceID:  item.PriceId,
+		PlanID:   item.PlanId,
 		Quantity: uint8(item.Quantity),
 	}
 }
