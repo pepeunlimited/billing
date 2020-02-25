@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/paymentrepo"
+	paymentrepo "github.com/pepeunlimited/billing/internal/pkg/mysql/payment"
 	"github.com/pepeunlimited/billing/pkg/rpc/payment"
 	"github.com/pepeunlimited/microservice-kit/validator"
 	"github.com/twitchtv/twirp"

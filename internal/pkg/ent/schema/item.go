@@ -17,7 +17,8 @@ func (Item) Config() ent.Config {
 
 func (Item) Fields() []ent.Field {
 	return []ent.Field {
-		field.Int64("price_id"),
+		field.Int64("price_id").Optional(),
+		field.Int64("plan_id").Optional(),
 		field.Uint8("quantity").Default(1),
 	}
 }

@@ -68,6 +68,7 @@ func ExampleItem() {
 	i := client.Item.
 		Create().
 		SetPriceID(1).
+		SetPlanID(1).
 		SetQuantity(1).
 		SaveX(ctx)
 	log.Println("item created:", i)
@@ -97,6 +98,7 @@ func ExampleOrders() {
 	i1 := client.Item.
 		Create().
 		SetPriceID(1).
+		SetPlanID(1).
 		SetQuantity(1).
 		SaveX(ctx)
 	log.Println("item created:", i1)

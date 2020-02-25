@@ -42,6 +42,7 @@ func ToOrderItem(item *ent.Item, orderId int64) *order.OrderItem {
 	return &order.OrderItem{
 		Id:       int64(item.ID),
 		PriceId:  item.PriceID,
+		PlanId:   item.PlanID,
 		Quantity: uint32(item.Quantity),
 		OrderId:  orderId,
 	}

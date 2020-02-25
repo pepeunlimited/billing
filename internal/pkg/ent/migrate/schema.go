@@ -26,7 +26,8 @@ var (
 	// OrderItemsColumns holds the columns for the "order_items" table.
 	OrderItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "price_id", Type: field.TypeInt64},
+		{Name: "price_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "plan_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "quantity", Type: field.TypeUint8, Default: item.DefaultQuantity},
 		{Name: "orders_items", Type: field.TypeInt, Nullable: true},
 	}
@@ -38,7 +39,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "order_items_orders_items",
-				Columns: []*schema.Column{OrderItemsColumns[3]},
+				Columns: []*schema.Column{OrderItemsColumns[4]},
 
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.SetNull,

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pepeunlimited/billing/internal/pkg/ent"
 	"github.com/pepeunlimited/billing/internal/pkg/mysql/orders"
-	"github.com/pepeunlimited/billing/internal/pkg/mysql/paymentrepo"
+	paymentrepo "github.com/pepeunlimited/billing/internal/pkg/mysql/payment"
 	"github.com/pepeunlimited/billing/internal/server/errorz"
 	"github.com/pepeunlimited/billing/internal/server/etc"
 	"github.com/pepeunlimited/billing/internal/server/validator"
@@ -12,9 +12,9 @@ import (
 )
 
 type PaymentServer struct {
-	payment    paymentrepo.PaymentRepository
-	orders     orders.OrdersRepository
-	valid      validator.PaymentServerValidator
+	payment paymentrepo.PaymentRepository
+	orders  orders.OrdersRepository
+	valid   validator.PaymentServerValidator
 }
 
 func (server PaymentServer) CreatePayment(ctx context.Context, params *payment.CreatePaymentParams) (*payment.Payment, error) {
@@ -102,8 +102,8 @@ func (server PaymentServer) GetPaymentInstruments(ctx context.Context, params *p
 
 func NewPaymentServer(client *ent.Client) PaymentServer {
 	return PaymentServer{
-		payment:    paymentrepo.New(client),
-		valid:      validator.NewPaymentServerValidator(),
-		orders:     orders.New(client),
+		payment: paymentrepo.New(client),
+		valid:   validator.NewPaymentServerValidator(),
+		orders:  orders.New(client),
 	}
 }

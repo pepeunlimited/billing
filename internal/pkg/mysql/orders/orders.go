@@ -123,7 +123,18 @@ func (mysql ordersMySQL) CreateOrder(ctx context.Context, userID int64, items []
 		return order, nil
 	}
 	for _, item := range items {
-		_, err := tx.Item.Create().SetOrdersID(order.ID).SetPriceID(item.PriceID).SetQuantity(item.Quantity).Save(ctx)
+		toDB := tx.
+			Item.
+			Create().
+			SetOrdersID(order.ID).
+			SetQuantity(item.Quantity)
+		if item.PriceID != 0 {
+			toDB.SetPriceID(item.PriceID)
+		}
+		if item.PlanID != 0 {
+			toDB.SetPlanID(item.PlanID)
+		}
+		_, err := toDB.Save(ctx)
 		if err != nil {
 			mysql.rollback(tx)
 			return nil, err

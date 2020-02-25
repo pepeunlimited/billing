@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// FieldPriceID holds the string denoting the price_id vertex property in the database.
 	FieldPriceID = "price_id"
+	// FieldPlanID holds the string denoting the plan_id vertex property in the database.
+	FieldPlanID = "plan_id"
 	// FieldQuantity holds the string denoting the quantity vertex property in the database.
 	FieldQuantity = "quantity"
 
@@ -31,6 +33,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldPriceID,
+	FieldPlanID,
 	FieldQuantity,
 }
 
@@ -43,7 +46,7 @@ var (
 	fields = schema.Item{}.Fields()
 
 	// descQuantity is the schema descriptor for quantity field.
-	descQuantity = fields[1].Descriptor()
+	descQuantity = fields[2].Descriptor()
 	// DefaultQuantity holds the default value on creation for the quantity field.
 	DefaultQuantity = descQuantity.Default.(uint8)
 )

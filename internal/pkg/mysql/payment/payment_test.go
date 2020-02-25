@@ -1,4 +1,4 @@
-package paymentrepo
+package payment
 
 import (
 	"context"

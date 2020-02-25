@@ -19,6 +19,10 @@ type ItemUpdate struct {
 	config
 	price_id      *int64
 	addprice_id   *int64
+	clearprice_id bool
+	plan_id       *int64
+	addplan_id    *int64
+	clearplan_id  bool
 	quantity      *uint8
 	addquantity   *uint8
 	orders        map[int]struct{}
@@ -39,6 +43,14 @@ func (iu *ItemUpdate) SetPriceID(i int64) *ItemUpdate {
 	return iu
 }
 
+// SetNillablePriceID sets the price_id field if the given value is not nil.
+func (iu *ItemUpdate) SetNillablePriceID(i *int64) *ItemUpdate {
+	if i != nil {
+		iu.SetPriceID(*i)
+	}
+	return iu
+}
+
 // AddPriceID adds i to price_id.
 func (iu *ItemUpdate) AddPriceID(i int64) *ItemUpdate {
 	if iu.addprice_id == nil {
@@ -46,6 +58,45 @@ func (iu *ItemUpdate) AddPriceID(i int64) *ItemUpdate {
 	} else {
 		*iu.addprice_id += i
 	}
+	return iu
+}
+
+// ClearPriceID clears the value of price_id.
+func (iu *ItemUpdate) ClearPriceID() *ItemUpdate {
+	iu.price_id = nil
+	iu.clearprice_id = true
+	return iu
+}
+
+// SetPlanID sets the plan_id field.
+func (iu *ItemUpdate) SetPlanID(i int64) *ItemUpdate {
+	iu.plan_id = &i
+	iu.addplan_id = nil
+	return iu
+}
+
+// SetNillablePlanID sets the plan_id field if the given value is not nil.
+func (iu *ItemUpdate) SetNillablePlanID(i *int64) *ItemUpdate {
+	if i != nil {
+		iu.SetPlanID(*i)
+	}
+	return iu
+}
+
+// AddPlanID adds i to plan_id.
+func (iu *ItemUpdate) AddPlanID(i int64) *ItemUpdate {
+	if iu.addplan_id == nil {
+		iu.addplan_id = &i
+	} else {
+		*iu.addplan_id += i
+	}
+	return iu
+}
+
+// ClearPlanID clears the value of plan_id.
+func (iu *ItemUpdate) ClearPlanID() *ItemUpdate {
+	iu.plan_id = nil
+	iu.clearplan_id = true
 	return iu
 }
 
@@ -164,6 +215,32 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: item.FieldPriceID,
 		})
 	}
+	if iu.clearprice_id {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: item.FieldPriceID,
+		})
+	}
+	if value := iu.plan_id; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  *value,
+			Column: item.FieldPlanID,
+		})
+	}
+	if value := iu.addplan_id; value != nil {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  *value,
+			Column: item.FieldPlanID,
+		})
+	}
+	if iu.clearplan_id {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: item.FieldPlanID,
+		})
+	}
 	if value := iu.quantity; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
@@ -228,6 +305,10 @@ type ItemUpdateOne struct {
 	id            int
 	price_id      *int64
 	addprice_id   *int64
+	clearprice_id bool
+	plan_id       *int64
+	addplan_id    *int64
+	clearplan_id  bool
 	quantity      *uint8
 	addquantity   *uint8
 	orders        map[int]struct{}
@@ -241,6 +322,14 @@ func (iuo *ItemUpdateOne) SetPriceID(i int64) *ItemUpdateOne {
 	return iuo
 }
 
+// SetNillablePriceID sets the price_id field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillablePriceID(i *int64) *ItemUpdateOne {
+	if i != nil {
+		iuo.SetPriceID(*i)
+	}
+	return iuo
+}
+
 // AddPriceID adds i to price_id.
 func (iuo *ItemUpdateOne) AddPriceID(i int64) *ItemUpdateOne {
 	if iuo.addprice_id == nil {
@@ -248,6 +337,45 @@ func (iuo *ItemUpdateOne) AddPriceID(i int64) *ItemUpdateOne {
 	} else {
 		*iuo.addprice_id += i
 	}
+	return iuo
+}
+
+// ClearPriceID clears the value of price_id.
+func (iuo *ItemUpdateOne) ClearPriceID() *ItemUpdateOne {
+	iuo.price_id = nil
+	iuo.clearprice_id = true
+	return iuo
+}
+
+// SetPlanID sets the plan_id field.
+func (iuo *ItemUpdateOne) SetPlanID(i int64) *ItemUpdateOne {
+	iuo.plan_id = &i
+	iuo.addplan_id = nil
+	return iuo
+}
+
+// SetNillablePlanID sets the plan_id field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillablePlanID(i *int64) *ItemUpdateOne {
+	if i != nil {
+		iuo.SetPlanID(*i)
+	}
+	return iuo
+}
+
+// AddPlanID adds i to plan_id.
+func (iuo *ItemUpdateOne) AddPlanID(i int64) *ItemUpdateOne {
+	if iuo.addplan_id == nil {
+		iuo.addplan_id = &i
+	} else {
+		*iuo.addplan_id += i
+	}
+	return iuo
+}
+
+// ClearPlanID clears the value of plan_id.
+func (iuo *ItemUpdateOne) ClearPlanID() *ItemUpdateOne {
+	iuo.plan_id = nil
+	iuo.clearplan_id = true
 	return iuo
 }
 
@@ -358,6 +486,32 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (i *Item, err error) {
 			Type:   field.TypeInt64,
 			Value:  *value,
 			Column: item.FieldPriceID,
+		})
+	}
+	if iuo.clearprice_id {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: item.FieldPriceID,
+		})
+	}
+	if value := iuo.plan_id; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  *value,
+			Column: item.FieldPlanID,
+		})
+	}
+	if value := iuo.addplan_id; value != nil {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  *value,
+			Column: item.FieldPlanID,
+		})
+	}
+	if iuo.clearplan_id {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: item.FieldPlanID,
 		})
 	}
 	if value := iuo.quantity; value != nil {

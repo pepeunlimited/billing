@@ -16,6 +16,7 @@ import (
 type ItemCreate struct {
 	config
 	price_id *int64
+	plan_id  *int64
 	quantity *uint8
 	orders   map[int]struct{}
 }
@@ -23,6 +24,28 @@ type ItemCreate struct {
 // SetPriceID sets the price_id field.
 func (ic *ItemCreate) SetPriceID(i int64) *ItemCreate {
 	ic.price_id = &i
+	return ic
+}
+
+// SetNillablePriceID sets the price_id field if the given value is not nil.
+func (ic *ItemCreate) SetNillablePriceID(i *int64) *ItemCreate {
+	if i != nil {
+		ic.SetPriceID(*i)
+	}
+	return ic
+}
+
+// SetPlanID sets the plan_id field.
+func (ic *ItemCreate) SetPlanID(i int64) *ItemCreate {
+	ic.plan_id = &i
+	return ic
+}
+
+// SetNillablePlanID sets the plan_id field if the given value is not nil.
+func (ic *ItemCreate) SetNillablePlanID(i *int64) *ItemCreate {
+	if i != nil {
+		ic.SetPlanID(*i)
+	}
 	return ic
 }
 
@@ -64,9 +87,6 @@ func (ic *ItemCreate) SetOrders(o *Orders) *ItemCreate {
 
 // Save creates the Item in the database.
 func (ic *ItemCreate) Save(ctx context.Context) (*Item, error) {
-	if ic.price_id == nil {
-		return nil, errors.New("ent: missing required field \"price_id\"")
-	}
 	if ic.quantity == nil {
 		v := item.DefaultQuantity
 		ic.quantity = &v
@@ -104,6 +124,14 @@ func (ic *ItemCreate) sqlSave(ctx context.Context) (*Item, error) {
 			Column: item.FieldPriceID,
 		})
 		i.PriceID = *value
+	}
+	if value := ic.plan_id; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  *value,
+			Column: item.FieldPlanID,
+		})
+		i.PlanID = *value
 	}
 	if value := ic.quantity; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

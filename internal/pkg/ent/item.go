@@ -18,6 +18,8 @@ type Item struct {
 	ID int `json:"id,omitempty"`
 	// PriceID holds the value of the "price_id" field.
 	PriceID int64 `json:"price_id,omitempty"`
+	// PlanID holds the value of the "plan_id" field.
+	PlanID int64 `json:"plan_id,omitempty"`
 	// Quantity holds the value of the "quantity" field.
 	Quantity uint8 `json:"quantity,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -54,6 +56,7 @@ func (*Item) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // id
 		&sql.NullInt64{}, // price_id
+		&sql.NullInt64{}, // plan_id
 		&sql.NullInt64{}, // quantity
 	}
 }
@@ -83,11 +86,16 @@ func (i *Item) assignValues(values ...interface{}) error {
 		i.PriceID = value.Int64
 	}
 	if value, ok := values[1].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field quantity", values[1])
+		return fmt.Errorf("unexpected type %T for field plan_id", values[1])
+	} else if value.Valid {
+		i.PlanID = value.Int64
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field quantity", values[2])
 	} else if value.Valid {
 		i.Quantity = uint8(value.Int64)
 	}
-	values = values[2:]
+	values = values[3:]
 	if len(values) == len(item.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field orders_items", value)
@@ -129,6 +137,8 @@ func (i *Item) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", i.ID))
 	builder.WriteString(", price_id=")
 	builder.WriteString(fmt.Sprintf("%v", i.PriceID))
+	builder.WriteString(", plan_id=")
+	builder.WriteString(fmt.Sprintf("%v", i.PlanID))
 	builder.WriteString(", quantity=")
 	builder.WriteString(fmt.Sprintf("%v", i.Quantity))
 	builder.WriteByte(')')
